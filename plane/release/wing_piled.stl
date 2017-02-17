@@ -1,0 +1,156 @@
+solid wing_piled.stl
+ facet normal 0.0 0.0 -1.0
+  outer loop
+   vertex 187.5 10.0 -155.0
+   vertex 112.5 5.0 -155.0
+   vertex 112.5 10.0 -155.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 -1.0
+  outer loop
+   vertex 112.5 5.0 -155.0
+   vertex 187.5 10.0 -155.0
+   vertex 187.5 5.0 -155.0
+  endloop
+ endfacet
+ facet normal 0.0 -1.0 0.0
+  outer loop
+   vertex 187.5 0.0 150.0
+   vertex 112.5 0.0 -155.0
+   vertex 187.5 0.0 -155.0
+  endloop
+ endfacet
+ facet normal 0.0 -1.0 0.0
+  outer loop
+   vertex 112.5 0.0 -155.0
+   vertex 187.5 0.0 150.0
+   vertex 112.5 0.0 150.0
+  endloop
+ endfacet
+ facet normal -1.0 0.0 0.0
+  outer loop
+   vertex 112.5 5.0 150.0
+   vertex 112.5 0.0 -155.0
+   vertex 112.5 0.0 150.0
+  endloop
+ endfacet
+ facet normal -1.0 0.0 0.0
+  outer loop
+   vertex 112.5 0.0 -155.0
+   vertex 112.5 5.0 150.0
+   vertex 112.5 5.0 -155.0
+  endloop
+ endfacet
+ facet normal -1.0 0.0 0.0
+  outer loop
+   vertex 112.5 5.0 -155.0
+   vertex 112.5 5.0 150.0
+   vertex 112.5 10.0 150.0
+  endloop
+ endfacet
+ facet normal -1.0 0.0 0.0
+  outer loop
+   vertex 112.5 5.0 -155.0
+   vertex 112.5 10.0 150.0
+   vertex 112.5 10.0 -155.0
+  endloop
+ endfacet
+ facet normal 1.0 0.0 0.0
+  outer loop
+   vertex 187.5 5.0 -155.0
+   vertex 187.5 0.0 150.0
+   vertex 187.5 0.0 -155.0
+  endloop
+ endfacet
+ facet normal 1.0 0.0 0.0
+  outer loop
+   vertex 187.5 0.0 150.0
+   vertex 187.5 5.0 -155.0
+   vertex 187.5 5.0 150.0
+  endloop
+ endfacet
+ facet normal 1.0 0.0 0.0
+  outer loop
+   vertex 187.5 5.0 150.0
+   vertex 187.5 5.0 -155.0
+   vertex 187.5 10.0 -155.0
+  endloop
+ endfacet
+ facet normal 1.0 0.0 0.0
+  outer loop
+   vertex 187.5 5.0 150.0
+   vertex 187.5 10.0 -155.0
+   vertex 187.5 10.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 1.0
+  outer loop
+   vertex 187.5 5.0 150.0
+   vertex 112.5 10.0 150.0
+   vertex 112.5 5.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 1.0
+  outer loop
+   vertex 112.5 10.0 150.0
+   vertex 187.5 5.0 150.0
+   vertex 122.5 10.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 1.0
+  outer loop
+   vertex 122.5 10.0 150.0
+   vertex 187.5 5.0 150.0
+   vertex 187.5 10.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 1.0
+  outer loop
+   vertex 187.5 0.0 150.0
+   vertex 112.5 5.0 150.0
+   vertex 112.5 0.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 1.0
+  outer loop
+   vertex 112.5 5.0 150.0
+   vertex 187.5 0.0 150.0
+   vertex 187.5 5.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 1.0 0.0
+  outer loop
+   vertex 112.5 10.0 150.0
+   vertex 187.5 10.0 -155.0
+   vertex 112.5 10.0 -155.0
+  endloop
+ endfacet
+ facet normal 0.0 1.0 0.0
+  outer loop
+   vertex 187.5 10.0 -155.0
+   vertex 112.5 10.0 150.0
+   vertex 187.5 10.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 1.0 0.0
+  outer loop
+   vertex 187.5 10.0 150.0
+   vertex 112.5 10.0 150.0
+   vertex 122.5 10.0 150.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 -1.0
+  outer loop
+   vertex 187.5 5.0 -155.0
+   vertex 112.5 0.0 -155.0
+   vertex 112.5 5.0 -155.0
+  endloop
+ endfacet
+ facet normal 0.0 0.0 -1.0
+  outer loop
+   vertex 112.5 0.0 -155.0
+   vertex 187.5 5.0 -155.0
+   vertex 187.5 0.0 -155.0
+  endloop
+ endfacet
+endsolid wing_piled.stl

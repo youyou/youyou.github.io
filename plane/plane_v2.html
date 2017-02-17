@@ -1,0 +1,40 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=320 user-scalable=no"/>
+        <link rel="stylesheet" href="css/viewer.min.css">
+        <title>教你造飞机</title>
+        <div id='wx_pic' style='margin:0 auto;display:none;'>
+            <img src='http://englishlearning.duapp.com/plane/rainbowicon.png' />
+        </div>
+    </head>
+	<body ondragstart="return false;"  ondrop="return false;" bgcolor=#FFFFFF style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#00aa00 >
+        <style>
+        .scene{
+             /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,7db9e8+100 */
+            background: rgb(30,87,153); /* Old browsers */
+            background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */        
+        }
+        </style>
+        <ul id='dowebok' style='display:none;'>
+            <li><img id='drawing' data-original='plane_drawing.svg' src='plane_drawing.svg' style='width:80%;' alt='飞机图纸' /></li>
+        </ul>
+    </body>
+    <script src="cocos2d-adapter.js"></script>
+    <script src="http://wow.techbrood.com/libs/jquery/jquery-1.11.1.min.js"></script>
+    <script src="http://wow.techbrood.com/libs/threejs/r78/three.min.js"></script>
+    <script src="http://wow.techbrood.com/libs/threejs/r78/js/loaders/STLLoader.js"></script>
+    <script src="http://wow.techbrood.com/libs/threejs/r78/js/loaders/ColladaLoader.js"></script>
+    <script src="http://wow.techbrood.com/libs/threejs/r78/js/Detector.js"></script>
+    <script src="http://wow.techbrood.com/libs/threejs/r78/js/libs/stats.min.js"></script>
+    <script src="js/viewer.min.js"></script>
+    <script>
+        var viewer = new Viewer(document.getElementById('dowebok'), {
+	        url: 'data-original'
+        });
+    </script>
+    <script src="plane_v2.js"></script>
+</html>

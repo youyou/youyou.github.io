@@ -1,0 +1,548 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=320 user-scalable=no"/>
+        <!--<linkrel="apple-touch-startup-image"href="startup.png"/>-->
+        <!--<linkrel="apple-touch-icon"href="icon.png"/>-->
+        <meta name="x5-orientation" content="portrait"/>
+        <meta name="x5-fullscreen" content="true" />
+        <meta name="x5-page-mode" content="app" />
+        <meta name="apple-mobile-web-app-capable" content="yes"/>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+        <title>飞机遥控</title>
+        <div id='wx_pic' style='margin:0 auto;display:none;'>
+            <img src='rainbowicon.png' />
+        </div>
+    </head>
+    <body ondragstart="return false;"  ondrop="return false;" bgcolor=#FFFFFF style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#00aa00 >
+        <style>
+        .scene {
+             /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,7db9e8+100 */
+            background: rgb(30,87,153); /* Old browsers */
+            background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */        
+        }
+        </style>
+        <iframe id='CMD' style='display:none'></iframe>
+    </body>
+    <script src="cocos2d-adapter.js"></script>
+    <script>
+
+        var planeIp = "192.168.1.100";
+        var skyColor  = ccc3( 22, 125, 178);
+
+        var supportsVibrate = "vibrate" in navigator;
+        if (navigator.vibrate) {
+            supportsVibrate = true;
+            navigator.vibrate(500);
+        } 
+        //else if (navigator.webkitVibrate) {
+        //     navigator.vibrate = webkitVibrate;
+        //     supportsVibrate = true;
+        // }
+        
+        function PlaneScene() {
+            
+            var scene = null;
+            
+            function CreateScene() {
+                
+                var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+                var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+                
+                var scene = CCScene.create();
+                scene.setContentSize(CCSizeMake(w, h));
+                scene.setColor(skyColor);
+                scene.setTouchEnabled(true);
+                scene.setVisible(false);
+                
+                scene.element.setAttribute('class','scene');
+                
+                return scene;
+            }
+        
+            function AddCloud( scene ) {
+                
+                var cloud = CCSprite.create( "cloud2.png");
+                scene.addChild(cloud);
+                cloud.setScale(0.8);
+                
+                cloud.onload = function() {
+                    cloud.setPosition( scene.width/2, scene.height-cloud.height/2);
+                }
+
+                return cloud;
+            }
+            
+            function ChangeValue( time, beginValue, dValue, valueFunc ) {
+                var obj = TimeAction(time);
+                function start( target ) {
+                    obj._start( target);
+                    obj._beginValue = beginValue;
+                }
+                function step( p ) {
+                    valueFunc( obj._beginValue + dValue * p );
+                }
+                function end(){
+                    obj._end();
+                }
+                obj.start  = start;
+                obj.step = step;
+                obj.end = end;
+                return obj;
+            }
+            
+            function AddEarth(scene) {
+                var earth = CCSprite.create("earth.png");
+                scene.addChild(earth);
+                earth.setPosition(scene.width/2, scene.height+280);
+                earth.runAction(RepeatForever(ChangeValue(365, 0, -360, function(v){
+                    earth.element.style.transform = "rotate("+v+"deg)";
+                })));
+            }
+            
+            function AddTouchLayer(scene) {
+        
+                var touchLayer = CCLayer.create();
+                scene.addChild(touchLayer);
+                touchLayer.setPosition( scene.width/2, scene.height/2);
+                touchLayer.setContentSize( CCSizeMake( (scene.width), (scene.height) ) );
+                touchLayer.setTouchEnabled(true);
+                
+                touchLayer._controledObject = null;
+                touchLayer._viewBtn = null;
+                
+                var kdx = 0.6;
+                var ignoreDxRange = scene.width/10;
+                var beginY = -1;
+                var beginX = -1;
+
+                var maxVerticalRange = 320;
+                var value  = 0;
+                var beginValue = value;
+                var verticalSpace = scene.height > maxVerticalRange ? maxVerticalRange : scene.height;
+
+                touchLayer.touchBegin = function( x, y) {
+                    beginY = y;
+                    beginX = x;
+                    if(touchLayer._controledObject === null) return;
+                    touchLayer._controledObject._locked = true;
+                    
+                    var cloudHeight = touchLayer._controledObject.height;
+                    var cloudSpace  = scene.height-touchLayer._controledObject.height;
+                    
+                    beginValue = value = (cloudSpace+cloudHeight/2-touchLayer._controledObject.y)/cloudSpace;
+                };
+                
+                touchLayer.touchMoved = function( x, y) {
+                    
+                    var dy = y - beginY;
+                    var dx = x - beginX;
+
+                    if(touchLayer._controledObject === null) return;
+
+                    var cloudHeight = touchLayer._controledObject.height;
+                    var cloudSpace  = scene.height-touchLayer._controledObject.height;
+                    
+                    value = beginValue - dy/verticalSpace;
+                    value = value > 0 ? value : 0;
+                    value = value < 1 ? value : 1;
+
+                    if(Math.abs(dx)<ignoreDxRange) dx = 0;
+                    var dir = dx/(scene.width/2);
+                    if(dir>1) dir = 1;
+                    if(dir<-1) dir = -1;
+
+                    touchLayer._controledObject.setPosition( scene.width/2+kdx*dx, scene.height-cloudHeight/2-cloudSpace*value );
+                    SetPlaneSpeed( value, dir);
+                };
+        
+                touchLayer.touchEnded = function( x, y) {
+                    
+                    var dy = y - beginY;
+                    var dx = 0;
+
+                    if( touchLayer._controledObject === null ) return;
+                    var cloudHeight = touchLayer._controledObject.height;
+                    var cloudSpace  = scene.height-touchLayer._controledObject.height;
+
+                    touchLayer._controledObject.setPosition( scene.width/2+kdx*dx, scene.height-cloudHeight/2-cloudSpace*value );
+
+                    SetPlaneSpeed( value, 0);
+                    
+                    if( value > 0 ) {
+                        touchLayer._controledObject._locked = false;
+                    }
+                    
+                    beginX = -1;
+                    beginY = -1;
+                };
+        
+                touchLayer.touchCanceled = touchLayer.touchEnded;
+        
+                touchLayer.setControledObject = function(obj) {
+                    touchLayer._controledObject = obj;
+                };
+        
+                return touchLayer;
+            }
+            
+        
+            function AddRainbow(scene) {
+                rainbow = CCSprite.create( "rainbow.png");
+                scene.addChild(rainbow);
+                rainbow.onload = function() {
+                    rainbow.setPosition( scene.width*1.2, rainbow.height/6);
+                }
+                rainbow.setOpacity(0);
+            }
+
+            var websocket = null;
+
+            function CreateWebSocket() {
+                
+                if( websocket !== null ) {
+                    websocket.close();
+                }
+
+                websocket = new WebSocket("ws:"+planeIp);
+                websocket.ready = false;
+                console.log("connecting "+"ws:"+planeIp);
+
+                websocket.onopen = function(evt) {
+                    console.log("CONNECTED");
+                    websocket.ready = true;
+                    rainbow.runAction(FadeIn(1));
+                };
+                websocket.onclose = function(evt) {
+                    console.log("DISCONNECTED");
+                    websocket.ready = false;
+                    rainbow.runAction(FadeOut(1));
+                };
+                websocket.onmessage = function(evt) {
+                    console.log("Receive:" + evt.data);
+                };
+                websocket.onerror = function(evt) {
+                    console.log("ERROR: " + evt.data);
+                    rainbow.runAction(FadeOut(1));
+                    websocket.ready = false;
+                };
+            }
+            
+            function CreateSenderQueue(scene) {
+
+                // this queue is used to ignore too frequent messages
+                senderQueue = {}
+
+                senderQueue.senderStack = [];
+                
+                senderQueue.send = function(data) {
+                    senderQueue.senderStack.push(data);
+                }
+
+                senderQueue.heartBeatCounter = 0;
+
+                var SendInterval = 0.05;
+                var heartBeatTime = 3; 
+                var maxHeartBeatCounterValue = heartBeatTime/SendInterval;
+
+                scene.runAction(RepeatForever(Sequence([DelayTime(SendInterval), CallFunc(function(){
+                    var data = senderQueue.senderStack.pop();
+                    if(data) {
+                        if(websocket.ready) {
+                            websocket.send(data);
+                            console.log( "SENT:"+ data);
+                        }
+                        console.log( "IGNORED:"+ senderQueue.senderStack.length);
+                        senderQueue.senderStack = [];
+                    } else if( senderQueue.heartBeatCounter++ > maxHeartBeatCounterValue) {
+                        senderQueue.heartBeatCounter = 0;
+                        if(websocket.ready) {
+                            websocket.send('h');
+                            console.log( "SENT:h");
+                        }
+                        else {
+                            CreateWebSocket();
+                        } 
+                    }
+                })])));
+
+                return senderQueue;
+            }
+
+            var maxDiffPercent = 0.1;
+            var maxDiffValue = 1023*maxDiffPercent;
+            
+            var lastSpeed = 0;
+            
+            var lastDir   = 0;
+            var lastSpeed = 0;
+            
+            function SetPlaneSpeed( speed, dir) {
+
+                console.log( "speed: " + speed + " dir:" + dir);
+                
+                if( supportsVibrate ) {
+                    
+                    if(    ( (speed === 0 || speed === 1) && speed != lastSpeed )
+                        || ( (dir === -1 || dir === 1) && dir != lastDir ) 
+                    ) {
+                        navigator.vibrate(100);
+                        //alert("called");
+                    }
+                    lastSpeed = speed;
+                    lastDir = dir;
+                }
+                
+                var value = parseInt(speed*1023);
+                value = value < 1023 ? value : 1023;
+                value = value > 0 ? value : 0;
+                
+                var v1 = value + parseInt(dir*maxDiffValue);
+                var v2 = value - parseInt(dir*maxDiffValue);
+                
+                v1 = v1 < 1023 ? v1 : 1023;
+                v1 = v1 > 0 ? v1 : 0;
+                
+                v2 = v2 < 1023 ? v2 : 1023;
+                v2 = v2 > 0 ? v2 : 0;
+
+                //console.log( "v1: " + v1 + " v2:" + v2);
+                var message = v2+"|"+v1;
+
+                console.log("SENT: " + message );
+                senderQueue.send(message);
+            }
+            
+            function CreateFilter( rate ) {
+                
+                var filter = {};
+                filter._weightNew = rate;
+                filter._weightOld = (1-rate);
+                filter._last    = null;
+                
+                filter._initedgetoutput = function(newValue) {
+                   this._last = newValue*this._weightNew + this._last*this._weightOld;
+                   return this._last;
+                }
+                
+                filter.getoutput = function(newValue) {
+                    this.getoutput = this._initedgetoutput;
+                    this._last = newValue;
+                    return newValue;
+                }
+                
+                return filter;
+            }
+            
+            function EnableDeviceMotionControl( _controledObject, width, height ) {
+                
+                var controledObject = _controledObject;
+                
+                var g = 9.8*0.6;
+                
+                var xFilter = CreateFilter(0.1);
+                var yFilter = CreateFilter(0.1);
+
+                var gkSpeed = -1;
+                var gkDir   = -1;
+                
+                if( Sys.isIOS ) {
+                    gkDir   = 1;
+                    gkSpeed = 1;
+                }
+
+                function motionHandler(event) {
+                    
+                    if(controledObject._locked) return;
+                    
+                    var accGravity = event.accelerationIncludingGravity;
+
+                    var speed = 0.5 + (yFilter.getoutput(accGravity.y)/(gkSpeed*g));
+                    var dir   = (xFilter.getoutput(accGravity.x)/(0.5*gkDir*g));
+                    
+                    speed = speed < 1 ? speed : 1;
+                    speed = speed > 0 ? speed : 0;
+                    
+                    dir = dir > -1 ? dir : -1;
+                    dir = dir < 1 ? dir : 1;
+                    
+                    if( Math.abs(dir) < 0.05 ) {
+                        dir = 0;
+                    }
+                    
+                    var verticalSpace  = height - controledObject.height;
+                    var horizonSpace   = width - controledObject.width;
+                    
+                    var sy = height - controledObject.height/2;
+                    var sx = width/2;
+                    controledObject.setPosition( sx + dir*horizonSpace/2,  sy - speed*verticalSpace );
+                    
+                    SetPlaneSpeed( speed, dir);
+                }
+                
+                if (window.DeviceMotionEvent) {
+                    window.addEventListener("devicemotion", motionHandler, false);
+                    return true;
+                }
+                
+                return false;
+            }
+
+            function AddIpConfigure(scene) {
+
+                var label = createLabelDefaultStyle( planeIp, scene.width/2, 18);
+                scene.addChild(label);
+                label.setColor(ccc3( 108, 170, 255));
+                label.setContentSize( CCSizeMake(scene.width, 32));
+                label.setTextAlign("center");
+
+                var inputLayer = CCLayer.create();
+                inputLayer.setContentSize(CCSizeMake( scene.width, 32));
+                inputLayer.setAnchorpoint( 0, 0);
+                inputLayer.setPosition( 0, 0);
+                inputLayer.setColor(ccc3(111,222,111));
+                inputLayer.setVisible(false);
+
+                label.setTouchEnabled(true);
+                label.touchEnded = function( x, y)
+                {
+                    label.setVisible(false);
+                    inputLayer.setVisible(true);
+                    scene.addChild(inputLayer);
+
+                    inputLayer.element.innerHTML = "<input id='name_input' placeholder='' style='text-align:center;width:"+scene.width+"px;height:32px;background:Transparent;color:#ffffff;font-size:16;border:none;'></input>";
+
+                    function quit()
+                    {
+                        if(inputLayer.isVisible())
+                        {
+                            label.setString(e.value);
+                            label.setVisible(true);
+                            
+                            planeIp = e.value;
+                            
+                            CreateWebSocket();
+
+                            inputLayer.setVisible(false);
+                            inputLayer.removeFromParent();
+                        }
+                    }
+
+                    var e = document.getElementById('name_input');
+                    e.value =  label.getString();
+                    e.focus();
+                    
+                    e.onblur = function() {
+                        quit();
+                    };
+
+                    e.onkeypress =function() { 
+                        if( event.keyCode == 13 ) {
+                            quit();
+                        }
+                    }
+
+                }
+
+            }
+
+            (function init() {
+                
+                scene = CreateScene();
+                
+                var cloud = AddCloud(scene);
+                cloud._locked = true;
+                
+                AddRainbow(scene);
+                CreateWebSocket();
+                CreateSenderQueue(scene);
+
+                var touchLayer = AddTouchLayer(scene);
+                touchLayer.setControledObject(cloud);
+                
+                EnableDeviceMotionControl( cloud, scene.width, scene.height );
+                
+                AddIpConfigure(scene);
+            })();
+            
+            var obj = new Object();
+            obj.show = function(){
+                scene.setVisible(true);
+                scene.runAction(Sequence([DelayTime(1.5), CallFunc(function(){
+                    //dialog.showCurrentPage();
+                })]))
+            }
+        
+            return obj;
+        }
+        
+        function LoadingScene(sceneToLoad) {
+            
+            var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+            var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+            
+            var scene = CCScene.create();
+            scene.setContentSize(CCSizeMake(w, h));
+            scene.setColor(skyColor);
+            scene.element.setAttribute('class','scene');
+            
+            var processLabel = createLabelDefaultStyle( "LOADING %0", scene.width/2, scene.height/2);
+            scene.addChild(processLabel);
+            processLabel.setContentSize(CCSizeMake(scene.width,20));
+            processLabel.setColor("#FFFFFF");
+            processLabel.setTextAlign("center");
+            
+            processLabel.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() {
+                processLabel.setString("LOADING %"+ parseInt(getLoadingPercentage()));
+                if( isAllResourceReady() ) {
+                    sceneToLoad.show();
+                    scene.removeAllChildsAndCleanUp(true);
+                    scene.removeFromParent();
+                    processLabel.stopAllActions();
+                }
+            })])));
+        }
+        
+        function LandscapeTipScene() {
+
+
+            var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+            var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+
+            var scene = CCScene.create();
+            scene.setContentSize(CCSizeMake(w, h));
+            scene.setColor(skyColor);
+            scene.setTouchEnabled(true);
+            scene.setVisible(false);
+            
+            var tipLabel = createLabelDefaultStyle( "请竖屏观看！", w/2, h/2);
+            scene.addChild(tipLabel);
+            tipLabel.setContentSize(CCSizeMake(320,20));
+            tipLabel.setColor("#aa55cc");
+            tipLabel.setTextAlign("center");
+            
+            SetOrintationLisener(function(orintation) { //检测横竖屏旋转
+                if( orintation === "landscape" ) {
+                    //scene.setVisible(true);
+                    //SetTimeScale(0);
+                } else if( orintation === "portrait" ){
+                    scene.setVisible(false);
+                    SetTimeScale(1);
+                }
+            });
+        }
+        
+        function StartGame() {
+            var driver = PlaneScene();
+            LoadingScene(driver);
+            LandscapeTipScene();
+            StartAnimation(1/60);
+        }
+        
+        StartGame();
+
+    </script>
+</html>

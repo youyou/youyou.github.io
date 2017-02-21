@@ -159,7 +159,7 @@ var contents  = [
                            + "拥有一架属于自己的小飞机。而我小时候，也曾尝试过造飞机，"
                            + "但由于知识匮乏，材料短缺并未成功。长大后，我们随时都可以去乘坐飞机，"
                            + "但是在我的心里造飞机的梦想一直未曾磨灭。近日玩无人机重燃了我造飞机的梦想。"
-                           + "经过大约一个月的努力，从飞不动，到飞几米高，再到能飞几十米的高度。"
+                           + "经过数月的努力，从飞不动到能飞几十米高，后来实现了通过手机遥控飞机飞行。"
                            + "现在，我将一种简单的飞机模型制作方法公布出来。"
                            + "期望能够帮助爱好航模的小同学完成造飞机的梦想, 提高动手能力。"
                            + "或许能成为点燃小朋友对飞行器强烈兴趣的星星之火。",
@@ -175,114 +175,94 @@ var contents  = [
                             "<li>推力:11克</li>" +
                             "<li>续航时间:10分钟</li>" +
                         "</ul>"
-                        +"<center><div id='3dmodel' model='steps/plane_finished_with_motor.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        +"<center><div id='3dmodel' model='tutorial_resource/assembly/plane_finished.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"制作材料",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
                         endText:"</h2></center>" +
                                 "<ul>" +
-                                    "<li>泡沫板[30.5cm*30cm*5mm]</li>" +
-                                    "<li>锂电池[300mah]</li>" +
+                                    "<li>泡沫板[30cm*30cm*0.5cm]</li>" +
+                                    "<li>电源模块</li>" +
                                     "<li>电机[716空心杯电机]</li>" +
                                     "<li>螺旋桨[4.5cm]</li>" +
-                                    "<li>泡沫胶</li>" +
-                                    "<li>充电器</li>" +
+                                    "<li>泡沫专用胶水</li>" +
                                 "</ul>"
                     },
                     {
                         text:"制作机身",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
                         endText:"</h2></center><br/><div id='PlaneDrawing' btnText='查看机身图纸' style='display:none;' >"
-                        + "<li><img data-original='body.svg' src='body.svg' style='width:80%;' alt='机身图纸' /></li>"
-                        + "<li><img data-original='cutting_line.svg' src='cutting_line.svg' style='width:80%;' alt='飞机切割图纸' /></li>"
-                        + "</div><center><i>在kt板上按照图纸标注尺寸切割出机身</i><br/><br/><div id='3dmodel' model='release/body.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        + "<li><img data-original='tutorial_resource/body.svg' src='tutorial_resource/body.svg' style='width:80%;' alt='机身图纸' /></li>"
+                        + "<li><img data-original='tutorial_resource/cutting_drawings.svg' src='tutorial_resource/cutting_drawings.svg' style='width:80%;' alt='切割图纸' /></li>"
+                        + "</div><center><i>在kt板上按照图纸标注尺寸切割出机身</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/body.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                    },
+                    {
+                        text:"加强机身",
+                        baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
+                        endText:"</h2><center><i>在机身上粘贴碳纤维</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/body_with_carbon_fiber.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"制作尾翼",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
                         endText: "</h2></center><br/><div id='PlaneDrawing' btnText='查看尾翼图纸' style='display:none;'>"
-                        + "<li><img data-original='empennage.svg' src='empennage.svg' style='width:80%;' alt='尾翼图纸' /></li>"
-                        + "<li><img data-original='cutting_line.svg' src='cutting_line.svg' style='width:80%;' alt='切割图纸' /></li>"
-                        +"</div><center><div id='3dmodel' model='release/empennage.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
-                    },
-                    {
-                        text:"制做机头加强片",
-                        baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><div id='PlaneDrawing' btnText='查看机头加强片图纸' style='display:none;'>"
-                        + "<li><img data-original='head_strengthen.svg' src='head_strengthen.svg' style='width:80%;' alt='加强片图纸' /></li>"
-                        + "<li><img data-original='cutting_line.svg' src='cutting_line.svg' style='width:80%;' alt='切割图纸' /></li>"
-                        +"</div><center><i>数量:2块</i><br/><br/><div id='3dmodel' model='release/headStrengthen.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        + "<li><img data-original='tutorial_resource/empennage.svg' src='tutorial_resource/empennage.svg' style='width:80%;' alt='尾翼图纸' /></li>"
+                        + "<li><img data-original='tutorial_resource/cutting_drawings.svg' src='tutorial_resource/cutting_drawings.svg' style='width:80%;' alt='切割图纸' /></li>"
+                        + "</div><center><div id='3dmodel' model='tutorial_resource/components/empennage.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"制做机翼材料",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
                         endText:"</h2></center><br/><div id='PlaneDrawing' btnText='查看机翼图纸' style='display:none;'>"
-                        + "<li><img data-original='wing.svg' src='wing.svg' style='width:80%;' alt='机头加强片图纸' /></li>"
-                        + "<li><img data-original='cutting_line.svg' src='cutting_line.svg' style='width:80%;' alt='切割图纸' /></li>"
-                        +"</div><center><i>数量:2块</i><br/><br/><div id='3dmodel' model='release/wing.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        + "<li><img data-original='tutorial_resource/wing.svg' src='tutorial_resource/wing.svg' style='width:80%;' alt='机头加强片图纸' /></li>"
+                        + "<li><img data-original='tutorial_resource/cutting_drawings.svg' src='tutorial_resource/cutting_drawings.svg' style='width:80%;' alt='切割图纸' /></li>"
+                        +"</div><center><div id='3dmodel' model='tutorial_resource/components/wing.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
-                        text:"将两块机翼材料叠起来用双面胶粘合",
+                        text:"碾压机翼使机翼中间厚两边薄",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><center><div id='3dmodel' model='release/wing_piled.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2></center><br/><center><div id='3dmodel' model='tutorial_resource/components/wing_after_compaction.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
-                        text:"按照图纸削去机翼的两个棱",
+                        text:"加强机翼",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><div id='PlaneDrawing' btnText='查看机翼制作图纸' style='display:none;'>"
-                        + "<li><img data-original='wing_cut.svg' src='wing_cut.svg' style='width:80%;' alt='查看机翼制作图纸' /></li>"
-                        +"</div><center><div id='3dmodel' model='release/wing_after_cut.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
-                    },
-                    {
-                        text:"碾压机翼的两个棱使机翼平滑",
-                        baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><center><div id='3dmodel' model='release/wing_after_compaction.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2></center><center><i>在机翼下表面粘贴碳纤维</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/wing_after_compaction_with_carbon_fiber.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"沿着机翼底部中位线划一条缝并把机翼上折7度左右",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><center><div id='3dmodel' model='release/wing_finished.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
-                    },
-                    {
-                        text:"将两块机头加强件用双面胶粘在机头两侧",
-                        baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><center><i>在此步骤之前可以在机身上粘贴碳纤维片加强机身强度！</i></br><div id='3dmodel' model='steps/body_strengthen.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2></center><br/><center><i>需要折断碳纤维</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/wing_finished.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"将尾翼用胶水站在机身尾部",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><center><div id='3dmodel' model='steps/body_with_empennage.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2></center><br/><center><div id='3dmodel' model='tutorial_resource/assembly/body_with_empennage.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"将制作好的机翼用胶水粘在机身上",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><center><i>注意：不太贴合的地方需要用刀子稍微修一下</i><br/><br/><div id='3dmodel' model='steps/plane_finished.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2></center><br/><center><div id='3dmodel' model='tutorial_resource/assembly/empty_plane_finished.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
-                        text:"将电机粘在电机架上,将电池放入机头上的电池槽里",
+                        text:"将电机粘在电机架上,将电池模块粘贴在机头部位",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><div id='PlaneDrawing' btnText='查看电机和电池位置' style='display:none;'>"
-                        +"<li><img data-original='motor_and_battery_place.svg' src='motor_and_battery_place.svg' style='width:80%;' alt='机头加强片图纸' /></li>"
-                        +"</div><center><div id='3dmodel' model='steps/plane_finished_with_motor.stl'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2></center><br/><center><i>如果螺旋桨顺时针转动，将电池模块粘在机头右侧，反之粘在左侧</i><br/><br/><div id='3dmodel' model='tutorial_resource/assembly/plane_finished.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"飞机调试",
                         baseText:"<center><h2>",
                         endText:"</h2></center>"
-                            + "1.将螺旋将凸面朝电机安装在电机轴上<br/>"
-                            + "2.将电机的两根导线与电池的两根导线相连，如果风向不朝后将连线对调一下<br/>"
-                            + "3.在保持连线不变的情况,下安装上插头<br/>"
-                            + "4.飞机起飞时水平抛出，如果飞机往下冲,则将水平尾翼尾部轻轻向上弯折。如果飞机往上飞，然后又栽到地上，将飞机尾翼尾部向下弯折。<br/>"
+                            + "1.电源模块上有一个充电插孔，可以使用手机数据线给飞机充电。红灯亮表示正在充电，绿灯亮表示已经充满。<br/><br/>"
+                            + "2.飞机起飞时水平抛出，如果飞机往下冲,则将水平尾翼尾部轻轻向上弯折。如果飞机往上飞，然后又栽到地上，将飞机尾翼尾部向下弯折。<br/><br/>"
+                            + "3.飞机向左倾斜时,将水平尾翼左边向下弯折右边向上弯折。向右倾斜时,将水平尾翼右边向下弯折，左边向上弯折。<br/><br/>"
                     },
                     {
                         text:"建议",
                         baseText:"<center><h2>",
                         endText:"</h2></center>"
-                            + "1.不懂的问家长<br/>"
-                            + "2.将充电模块安装在飞机上并安装开关虽然会增加一定的重量，但是可以避免多次拔插插头造成接触不良<br/>"
-                            + "3.飞机机身损坏可以使用胶水修补，大面积损坏可以在广告点买5mm厚KT板重做<br/>"
-                            + "4.熟悉了以后,除了调整飞机尾翼以外,还可以调整飞机机翼攻角和飞机推力线,甚至可以自己设计一架更加优秀的飞机<br/>"
+                            + "1.选择空旷的地方飞行，如果飞机挂到树上，取飞机时必须保证自身安全且不破坏树木。<br/><br/>"
+                            + "2.如果飞机调试好，可以飞几十米乃至上百米高，飞行数公里远。如果飞机飞走，不能应为追飞机而不顾安全。<br/><br/>"
+                            + "4.如果飞机飞走，说明你成功了，而且说明你具备了制作遥控飞机的能力，可以尝试制作遥控飞机。<br/>"
                     }
                 ];
 

@@ -5,9 +5,9 @@
         <meta name="x5-orientation" content="portrait"/>
         <meta name="x5-fullscreen" content="true" />
         <meta name="x5-page-mode" content="app" />
-        <meta name="apple-mobile-web-app-capable" content="yes"/>
-        <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-        <link rel="apple-touch-startup-image" href="start.png"/>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <link rel="apple-touch-startup-image" href="start.png" media="(device-height:1334px)" />
         <link rel="apple-touch-icon" href="icon.png"/>
         <title>飞机遥控</title>
         <div id='wx_pic' style='margin:0 auto;display:none;'>
@@ -26,21 +26,18 @@
         }
         </style>
         <iframe id='CMD' style='display:none'></iframe>
+        <audio id="snd" preload="auto" src="hit_bounds.mp3"></audio>
+    </body>
     <script src="cocos2d-adapter.js"></script>
     <script>
-
+        
         var planeIp = "192.168.1.100";
         var skyColor  = ccc3( 22, 125, 178);
-
-        var supportsVibrate = "vibrate" in navigator;
-        if (navigator.vibrate) {
-            supportsVibrate = true;
-            navigator.vibrate(500);
-        } 
-        //else if (navigator.webkitVibrate) {
-        //     navigator.vibrate = webkitVibrate;
-        //     supportsVibrate = true;
-        // }
+        
+        function hit_bound() {
+            var audio = document.getElementById("snd");
+            audio.play();
+        }
         
         function PlaneScene() {
             
@@ -283,17 +280,15 @@
 
                 console.log( "speed: " + speed + " dir:" + dir);
                 
-                if( supportsVibrate ) {
-                    
-                    if(    ( (speed === 0 || speed === 1) && speed != lastSpeed )
-                        || ( (dir === -1 || dir === 1) && dir != lastDir ) 
-                    ) {
-                        navigator.vibrate(100);
-                        //alert("called");
-                    }
-                    lastSpeed = speed;
-                    lastDir = dir;
+                // effect when reach bounds 
+                if(    ( (speed === 0 || speed === 1) && speed != lastSpeed )
+                    || ( (dir === -1 || dir === 1) && dir != lastDir ) 
+                ) {
+                   hit_bound();
                 }
+                lastSpeed = speed;
+                lastDir = dir;
+                
                 
                 var value = parseInt(speed*1023);
                 value = value < 1023 ? value : 1023;
@@ -412,7 +407,7 @@
                     inputLayer.setVisible(true);
                     scene.addChild(inputLayer);
 
-                    inputLayer.element.innerHTML = "<input id='name_input' placeholder='' style='text-align:center;width:"+scene.width+"px;height:32px;background:Transparent;color:#ffffff;font-size:16;border:none;'></input>";
+                    inputLayer.element.innerHTML = "<input id='name_input' placeholder='' style='text-align:center;width:100%;height:32px;background:Transparent;color:#ffffff;font-size:16;border:none;'></input>";
 
                     function quit()
                     {
@@ -447,7 +442,21 @@
                 }
 
             }
-
+            
+            function AddStartUpTip(scene) {
+                
+                var tipLabel = createLabelDefaultStyle( "请关闭自动锁屏并将设备锁定为竖屏", scene.width/2, scene.height/2);
+                scene.addChild(tipLabel);
+                tipLabel.setContentSize(CCSizeMake(scene.width,20));
+                tipLabel.setColor("#ffffff");
+                tipLabel.setTextAlign("center");
+                tipLabel.setOpacity(0.0);
+                
+                tipLabel.runAction(Sequence([FadeTo(0.5,0.6),DelayTime(3),FadeOut(0.5),CallFunc(function(){
+                    tipLabel.removeFromParent();
+                })]));
+            }
+            
             (function init() {
                 
                 scene = CreateScene();
@@ -465,6 +474,7 @@
                 EnableDeviceMotionControl( cloud, scene.width, scene.height );
                 
                 AddIpConfigure(scene);
+                AddStartUpTip(scene);
             })();
             
             var obj = new Object();
@@ -474,6 +484,8 @@
                     //dialog.showCurrentPage();
                 })]))
             }
+            
+            obj._scene = scene;
         
             return obj;
         }
@@ -505,44 +517,47 @@
             })])));
         }
         
-        function LandscapeTipScene() {
+        function LandscapeTipScene(plane_remote) {
 
 
             var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
             var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
 
-            var scene = CCScene.create();
-            scene.setContentSize(CCSizeMake(w, h));
-            scene.setColor(skyColor);
-            scene.setTouchEnabled(true);
-            scene.setVisible(false);
+            var tipScene = CCScene.create();
+            tipScene.setContentSize(CCSizeMake(h, w));
+            tipScene.setTouchEnabled(true);
+            tipScene.setVisible(false);
+            tipScene.element.setAttribute('class','scene');
             
-            var tipLabel = createLabelDefaultStyle( "请竖屏观看！", w/2, h/2);
-            scene.addChild(tipLabel);
-            tipLabel.setContentSize(CCSizeMake(320,20));
-            tipLabel.setColor("#aa55cc");
+            var tipLabel = createLabelDefaultStyle( "请将设备锁定为竖屏", tipScene.width/2, tipScene.height/2);
+            tipScene.addChild(tipLabel);
+            tipLabel.setContentSize(CCSizeMake(tipScene.width,20));
+            tipLabel.setColor("#ffffff");
             tipLabel.setTextAlign("center");
+            tipLabel.setOpacity(0.6);
             
             SetOrintationLisener(function(orintation) { //检测横竖屏旋转
+                var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+                var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
                 if( orintation === "landscape" ) {
-                    //scene.setVisible(true);
-                    //SetTimeScale(0);
-                } else if( orintation === "portrait" ){
-                    scene.setVisible(false);
-                    SetTimeScale(1);
+                    tipScene.setContentSize(CCSizeMake(h, w));
+                    tipLabel.setPosition(h/2,w/2);
+                    tipScene.setVisible(true);
+                } else if( orintation === "portrait" ) {
+                    tipScene.setVisible(false);
+                    plane_remote._scene.setContentSize(CCSizeMake(w, h));
                 }
             });
         }
         
         function StartGame() {
-            var driver = PlaneScene();
-            LoadingScene(driver);
-            LandscapeTipScene();
+            var plane_remote = PlaneScene();
+            LoadingScene(plane_remote);
+            LandscapeTipScene(plane_remote);
             StartAnimation(1/60);
         }
         
         StartGame();
 
     </script>
-</body>
 </html>

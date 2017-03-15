@@ -199,7 +199,23 @@ function AddChild( node, child ) {
         RemoveChild( child.parent, child);
     }
 
-    node.element.appendChild(child.element);
+    if( node._isGLNode ) {
+        
+        child._isGLNode = true;
+        child._GL = node._GL;
+        
+        if( !child._texture ) {
+            child._texture = child._GL.createTexture();
+        }
+        
+        if(child._image) {
+            GenTexture(child);
+        }
+    }
+    else {
+        node.element.appendChild(child.element);
+    }
+
     node.childs.push(child);
 
     child.parent = node;
@@ -240,7 +256,7 @@ function SetPosition( node, x, y) {
     node.x=x;
     node.y=y;
     var element = node.element;
-    if(typeof(node.width) != 'undefined' ) {
+    if( typeof(node.width) !== 'undefined' ) {
         if( node.parent !== null ) {
             element.style.left =   node.x*node.parent.transform.scalex - node.width*node.ax;
             element.style.top  =   node.y*node.parent.transform.scaley - node.height*node.ay;
@@ -355,6 +371,7 @@ function SetScale( node, scale ) {
 
 function SetRotation( node, rotation) {
     node.rotation = node.transform.rotation = rotation;
+    node.rotation_rad = -node.rotation*Math.PI/360;
     var r = "rotate("+rotation+"deg)";
     node.element.style['transform'] = r;
     node.element.style['-o-transform'] = r;
@@ -600,7 +617,8 @@ function CCNode_instance() {
 
     this.scalex = this.scaley = this.transform.scalex = this.transform.scaley = 1;
     this.rotation = this.transform.rotation = 0;
-    
+    this.rotation_rad = this.rotation*Math.PI/360;
+        
     var div = document.createElement("DIV");
     div.name = this.id;
     
@@ -763,8 +781,14 @@ function CCSprite_instance( parent_instance, str) {
         var img = new Image();
         onRequestResource( "image", str);
         img.onload = function() {
+            
             onResourceReady( "image", str);
             
+            parent_instance._image = img;
+            if( parent_instance._isGLNode ) {
+                GenTexture(parent_instance);
+            }
+
             if( !IS_IE ) {
                 parent_instance.element.style.backgroundImage  = "url("+str+")"; // not ie
             } else {
@@ -1010,6 +1034,10 @@ function CCLabel_instance( parent_instance, str) {
     parent_instance.setTextAlign = function(align) {
         parent_instance.element.style['text-align'] = align;
     };
+    
+    parent_instance.setTextSize = function(size) {
+        parent_instance.element.style['font-size'] = size+"px";
+    }
     
     parent_instance.element.style.width = "auto";
     parent_instance.element.style['text-align'] = "left";
@@ -2339,11 +2367,16 @@ function processAction( dt ) {
     if( actionsEnded.length > 0 ) {
         removeEndedActions();
     }
+    
+    //cclog( "Runing Actions Count:" + actionManager.length );
 }
 
 function StartAnimation(dt)
 {
+    var lastUpdateTime = (new Date).getTime();
     function update() {
+        var curTime = (new Date).getTime();
+        var time = (curTime-lastUpdateTime)/1000.0;
         processAction(dt);
     }
     CCDirector.sharedDirector().getScheduler().scheduleScriptFunc( update, dt, false);
@@ -2694,3 +2727,422 @@ function SetOrintationLisener( orintation_callback_func ) {
     }
 })();
 
+function cilpboard()
+{
+    var obj = {};
+
+    function select(element) {
+        var selectedText;
+
+        if (element.nodeName === 'SELECT') {
+            element.focus();
+
+            selectedText = element.value;
+        }
+        else if (element.nodeName === 'INPUT' || element.nodeName === 'TEXTAREA') {
+            var isReadOnly = element.hasAttribute('readonly');
+
+            if (!isReadOnly) {
+                element.setAttribute('readonly', '');
+            }
+
+            element.select();
+            element.setSelectionRange(0, element.value.length);
+
+            if (!isReadOnly) {
+                element.removeAttribute('readonly');
+            }
+
+            selectedText = element.value;
+        }
+        else {
+            if (element.hasAttribute('contenteditable')) {
+                element.focus();
+            }
+
+            var selection = window.getSelection();
+            var range = document.createRange();
+
+            range.selectNodeContents(element);
+            selection.removeAllRanges();
+            selection.addRange(range);
+
+            selectedText = selection.toString();
+        }
+
+        return selectedText;
+    }
+
+    /**
+     * Creates a fake textarea element, sets its value from `text` property,
+     * and makes a selection on it.
+     */
+    obj.selectFake = function () {
+
+        const isRTL = document.documentElement.getAttribute('dir') == 'rtl';
+
+        obj.removeFake();
+        
+        obj.fakeElem = document.createElement('textarea');
+        // Prevent zooming on iOS
+        obj.fakeElem.style.fontSize = '12pt';
+        // Reset box model
+        obj.fakeElem.style.border = '0';
+        obj.fakeElem.style.padding = '0';
+        obj.fakeElem.style.margin = '0';
+        // Move element out of screen horizontally
+        obj.fakeElem.style.position = 'absolute';
+        obj.fakeElem.style[ isRTL ? 'right' : 'left' ] = '-9999px';
+        // Move element to the same position vertically
+        let yPosition = window.pageYOffset || document.documentElement.scrollTop;
+        obj.fakeElem.style.top = yPosition + 'px';
+
+        obj.fakeElem.setAttribute('readonly', '');
+        obj.fakeElem.value = obj.text;
+
+        document.body.appendChild(obj.fakeElem);
+        obj.fakeElem.focus();
+        obj.selectedText = select(obj.fakeElem);
+    }
+
+    /**
+     * Only removes the fake element after another click event, that way
+     * a user can hit `Ctrl+C` to copy because selection still exists.
+     */
+    obj.removeFake = function() {
+        if (obj.fakeElem) {
+            document.body.removeChild(obj.fakeElem);
+            obj.fakeElem = null;
+        }
+    }
+
+    /**
+     * Executes the copy operation based on the current selection.
+     */
+    obj.copyText = function( text, callback) {
+        
+        obj.text = text;
+
+        obj.selectFake();
+        
+        let succeeded;
+
+        try {
+            succeeded = document.execCommand("copy", false, null);
+        }
+        catch (err) {
+           succeeded = false;
+        }
+        
+        obj.removeFake();
+
+        callback(succeeded);
+    }
+    return obj;
+}
+
+
+
+
+/**************************** Web GL support **********************************/
+
+function BeginRender(scene) {
+
+    var gl = scene._GL;
+    
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND); 
+    gl.disable(gl.DEPTH_TEST);
+    
+    gl.ProjectionMatrix = makeOrtho( 0, gl.drawingBufferWidth, gl.drawingBufferHeight, 0, -1.0, 1.0);
+    initShaders(gl);
+    
+    function WebGLSceneRender() {
+        for(x in scene.childs) {
+            if(scene.childs[x]._gl_render) 
+                scene.childs[x]._gl_render();
+        }
+    }
+    
+    scene.runAction(RepeatForever(CallFunc(WebGLSceneRender)));
+}
+
+
+function EnableOpenGL(scene) {
+    
+    var _GL = null;
+    scene._canvas = null;
+    
+    function AttachCanvas(scene) {
+        var canvas = document.createElement('canvas');
+        if(canvas){
+            canvas.width  = scene.width;
+            canvas.height = scene.height;
+            scene.element.appendChild(canvas);
+            scene._canvas = canvas;
+            return canvas;
+        }
+        return null;
+    }
+
+    function InitWebGL(scene) {
+        _GL = null;
+        try {
+            _GL = scene._canvas.getContext("experimental-webgl");
+        }
+        catch(e) {
+            return false;
+        }
+        return true;
+    }
+
+    var cavas = null;
+    if( !scene._canvas ) {
+        AttachCanvas(scene);
+    }
+    if( scene._canvas) {
+        var supportWebGL = InitWebGL(scene);
+        if( supportWebGL ) {
+            scene._isGLNode = true;
+            scene._GL = _GL;
+            BeginRender(scene);
+            return true;
+        }
+    }
+    return false;
+}
+
+function GenTexture(node) {
+    
+    assert( node._image, "Error: trying generate texture without image.");
+    assert( node._GL, "Error: trying generate texture without GL context.");
+    assert( node._texture, "Error: no texture.");
+    
+    function isPOT( w, h) {
+        while( (w/=2) > 1 );
+        while( (h/=2) > 1);
+        return (w==1)&&(h==1);
+    }
+    
+    function createPOTTexture(image) {
+        
+        var width  = 1;
+        var height = 1;
+        
+        while(width<image.width) width*=2;
+        while(height<image.height) height*=2;
+        
+        // create a hidden canvas to draw the texture 
+        var canvas = document.createElement('canvas');
+        canvas.id     = "hiddenCanvas";
+        canvas.width  = width;
+        canvas.height = height;
+        canvas.style.backgroundColor   = "#000000";
+        canvas.style.display = "none";
+        var body = document.getElementsByTagName("body")[0];
+        body.appendChild(canvas);        
+    
+        // draw texture
+        var cubeImage = document.getElementById('hiddenCanvas');
+        var ctx = cubeImage.getContext('2d');
+        ctx.drawImage( image, 0, 0);
+        
+        return canvas;
+    }
+    
+    var potTexture = null;
+    
+    if( !isPOT( node._image.width, node._image.height) ) {
+        potTexture = createPOTTexture(node._image);
+        node._textureWidth = potTexture.width;
+        node._textureHeight = potTexture.height;
+    } else {
+        node._textureWidth = node._image.width;
+        node._textureHeight = node._image.height;
+    }
+    
+    var gl = node._GL;
+    gl.bindTexture( gl.TEXTURE_2D, node._texture);
+    gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, potTexture !== null ? potTexture : node._image);
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.bindTexture( gl.TEXTURE_2D, null);
+    
+    node._texture_ready = true;
+    
+    if(potTexture) 
+        potTexture.parentNode.removeChild(potTexture);
+        
+    InitNodeRender(node);
+}
+
+//
+// initShaders
+//
+// Initialize the shaders, so WebGL knows how to light our scene.
+//
+function initShaders(gl) {
+    
+    var fragmentShader = getShader(gl, "shader-fs");
+    var vertexShader = getShader(gl, "shader-vs");
+    
+    // Create the shader program
+    shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+    
+    // If creating the shader program failed, alert
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert("Unable to initialize the shader program: " + gl.getProgramInfoLog(shader));
+    }
+    
+    gl.useProgram(shaderProgram);
+    
+    vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    
+    vertexTextureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
+    gl.enableVertexAttribArray(vertexTextureCoordAttribute);
+}
+
+//
+// getShader
+//
+// Loads a shader program by scouring the current document,
+// looking for a script with the specified ID.
+//
+function getShader(gl, id) {
+  var shaderScript = document.getElementById(id);
+
+  // Didn't find an element with the specified ID; abort.
+
+  if (!shaderScript) {
+    return null;
+  }
+
+  // Walk through the source element's children, building the
+  // shader source string.
+
+  var theSource = "";
+  var currentChild = shaderScript.firstChild;
+
+  while(currentChild) {
+    if (currentChild.nodeType == 3) {
+      theSource += currentChild.textContent;
+    }
+
+    currentChild = currentChild.nextSibling;
+  }
+
+  // Now figure out what type of shader script we have,
+  // based on its MIME type.
+
+  var shader;
+
+  if (shaderScript.type == "x-shader/x-fragment") {
+    shader = gl.createShader(gl.FRAGMENT_SHADER);
+  } else if (shaderScript.type == "x-shader/x-vertex") {
+    shader = gl.createShader(gl.VERTEX_SHADER);
+  } else {
+    return null;  // Unknown shader type
+  }
+
+  // Send the source to the shader object
+  gl.shaderSource(shader, theSource);
+
+  // Compile the shader program
+  gl.compileShader(shader);
+
+  // See if it compiled successfully
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    alert("An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader));
+    return null;
+  }
+
+  return shader;
+}
+
+function makeOrtho(
+    left, right,
+    bottom, top,
+    znear, zfar
+) {
+    var tx = -(right+left)/(right-left);
+    var ty = -(top+bottom)/(top-bottom);
+    var tz = -(zfar+znear)/(zfar-znear);
+
+    return [2/(right-left), 0, 0,  tx,
+            0, 2/(top-bottom), 0,  ty,
+            0, 0, -2/(zfar-znear), tz,
+            0, 0, 0, 1];
+}
+
+function UpdateWebGLAnchorpoint(node) {
+    
+    var gl = node._GL;
+    
+    var vertices = [  -node._image.width*node.ax,                   node._image.height-node._image.height*node.ay,  0.0, 
+                      node._image.width-node._image.width*node.ax,  node._image.height-node._image.height*node.ay,  0.0,
+                      -node._image.width*node.ax,                   -node._image.height*node.ay,                    0.0, 
+                      node._image.width-node._image.width*node.ax,  -node._image.height*node.ay,                    0.0];
+                       
+                       
+     if(node._vertexBuffer) {
+         gl.deleteBuffer(node._vertexBuffer);
+         node._vertexBuffer = null;
+     }
+     
+     node._vertexBuffer = gl.createBuffer();
+     gl.bindBuffer(gl.ARRAY_BUFFER, node._vertexBuffer);
+     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+}
+
+function InitNodeRender(node) {
+     
+     var gl = node._GL;
+     
+     UpdateWebGLAnchorpoint(node);
+     
+     var h = node._image.height/node._textureHeight;
+     var w = node._image.width/node._textureWidth;
+     
+     var textureCoordBuffer = [ 0.0, h, 
+                                w,   h,
+                                0.0, 0.0,
+                                w,   0.0];
+                                
+     node._vertexTextureCoordBuffer = gl.createBuffer();
+     gl.bindBuffer( gl.ARRAY_BUFFER, node._vertexTextureCoordBuffer);
+     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordBuffer), gl.STATIC_DRAW);
+     
+     node._gl_render = function() {
+         
+        if( !node._texture_ready || !node.visible) return;
+         
+        gl.bindBuffer(gl.ARRAY_BUFFER, node._vertexBuffer);
+        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, node._vertexTextureCoordBuffer);
+        gl.vertexAttribPointer(vertexTextureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        
+        gl.activeTexture( gl.TEXTURE0);
+        gl.bindTexture( gl.TEXTURE_2D, node._texture);
+        gl.uniform1i( gl.getUniformLocation(shaderProgram, "uSampler"), 0);
+        gl.uniform1f( gl.getUniformLocation(shaderProgram, "uAlpha"), node.opacity);
+        
+        var pUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
+        gl.uniformMatrix4fv(pUniform, false, new Float32Array(gl.ProjectionMatrix));
+        
+        var mvUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+        gl.uniformMatrix4fv(mvUniform, false, new Float32Array([ Math.cos(node.rotation_rad)*node.scalex, Math.sin(node.rotation_rad), 0, node.x,
+                                                                -Math.sin(node.rotation_rad), Math.cos(node.rotation_rad)*node.scaley, 0, node.y,
+                                                                0,0,1,0,
+                                                                0,0,0,1]));
+        
+        gl.drawArrays( gl.TRIANGLE_STRIP, 0, 4);
+     }
+};
+
+/**************************** End GL support **********************************/

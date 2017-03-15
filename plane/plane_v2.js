@@ -173,6 +173,7 @@ var contents  = [
                         "<ul>" +
                             "<li>重量:26克</li>" +
                             "<li>推力:11克</li>" +
+                            "<li>能源:锂电池</li>" +
                             "<li>续航时间:10分钟</li>" +
                         "</ul>"
                         +"<center><div id='3dmodel' model='tutorial_resource/assembly/plane_finished.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
@@ -182,12 +183,13 @@ var contents  = [
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
                         endText:"</h2></center>" +
                                 "<ul>" +
-                                    "<li>泡沫板[30cm*30cm*0.5cm]</li>" +
+                                    "<li>KT板[30cm*30cm*0.5cm]</li>" +
                                     "<li>电源模块</li>" +
                                     "<li>电机[716空心杯电机]</li>" +
                                     "<li>螺旋桨[4.5cm]</li>" +
-                                    "<li>泡沫专用胶水</li>" +
-                                "</ul>"
+                                    "<li>DIY专用胶水</li>" +
+                                "</ul>" +
+                                "<br/><div id='PlaneDrawing' btnText='如何获得材料' style='display:none;' link='￥Uhhgffjcf￥' />"
                     },
                     {
                         text:"制作机身",
@@ -200,7 +202,7 @@ var contents  = [
                     {
                         text:"加强机身",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2><center><i>在机身上粘贴碳纤维</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/body_with_carbon_fiber.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2><center><i>在机身上粘贴碳纤维让机身更结实</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/body_with_carbon_fiber.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
                         text:"制作尾翼",
@@ -231,10 +233,10 @@ var contents  = [
                     {
                         text:"沿着机翼底部中位线划一条缝并把机翼上折7度左右",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
-                        endText:"</h2></center><br/><center><i>需要折断碳纤维</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/wing_finished.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
+                        endText:"</h2></center><br/><center><i>需要折断碳纤维,完成后在划出的缝隙里填充一些胶水让机翼保持上翘</i><br/><br/><div id='3dmodel' model='tutorial_resource/components/wing_finished.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
                     {
-                        text:"将尾翼用胶水站在机身尾部",
+                        text:"将尾翼用胶水粘在机身尾部",
                         baseText:"&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<center><h2>",
                         endText:"</h2></center><br/><center><div id='3dmodel' model='tutorial_resource/assembly/body_with_empennage.dae'/><div id='loadingText'>正在载入模型...</div></div></center>"
                     },
@@ -253,16 +255,26 @@ var contents  = [
                         baseText:"<center><h2>",
                         endText:"</h2></center>"
                             + "1.电源模块上有一个充电插孔，可以使用手机数据线给飞机充电。红灯亮表示正在充电，绿灯亮表示已经充满。<br/><br/>"
-                            + "2.飞机起飞时水平抛出，如果飞机往下冲,则将水平尾翼尾部轻轻向上弯折。如果飞机往上飞，然后又栽到地上，将飞机尾翼尾部向下弯折。<br/><br/>"
-                            + "3.飞机向左倾斜时,将水平尾翼左边向下弯折右边向上弯折。向右倾斜时,将水平尾翼右边向下弯折，左边向上弯折。<br/><br/>"
+                            + "2.飞机向左倾斜时,将水平尾翼左边后沿向下弯折右边后沿向上弯折。向右倾斜时,将水平尾翼右边后沿向下弯折，左边后沿向上弯折。<br/><br/>"
+                            + "3.飞机起飞时水平抛出，如果飞机往下冲,则将水平尾翼左右两侧后沿轻轻向上弯折。如果飞机往上飞，然后又栽到地上，将飞机尾翼左右两侧后沿向下弯折。<br/><br/>"
                     },
                     {
                         text:"建议",
                         baseText:"<center><h2>",
                         endText:"</h2></center>"
-                            + "1.选择空旷的地方飞行，如果飞机挂到树上，取飞机时必须保证自身安全且不破坏树木。<br/><br/>"
-                            + "2.如果飞机调试好，可以飞几十米乃至上百米高，飞行数公里远。如果飞机飞走，不能应为追飞机而不顾安全。<br/><br/>"
+                            + "1.使用胶水时先涂上胶水再凉一会再粘合，这样干的快。<br/><br/>"
+                            + "2.选择空旷的地方飞行，如果飞机挂到树上，取飞机时必须保证自身安全且不破坏树木。<br/><br/>"
+                            + "3.如果飞机调试好，可以飞几十米乃至上百米高，飞行数公里远。如果飞机飞走，不能应为追飞机而不顾安全。<br/><br/>"
                             + "4.如果飞机飞走，说明你成功了，而且说明你具备了制作遥控飞机的能力，可以尝试制作遥控飞机。<br/>"
+                    },
+                    {
+                        text:"愿我们捡到晶莹的石子，美丽的贝壳~",
+                        baseText:"<center><table><tr/><td><img height=40 src='headicon.jpeg'></img></td><td><center><font size=4 style='line-height:23px;'>日光海岸</font><br/><font size=1 style='background-color:green;'>新开淘宝店铺</font></center></td></table></center><br/><center><i>",
+                        endText:"</i></center>",
+                        hideBackground:true,
+                        hidePageIndex:true,
+                        allowComment:true,
+                        showRainbow:true
                     }
                 ];
 
@@ -287,7 +299,8 @@ function ChangeValue( time, beginValue, dValue, valueFunc ) {
 }
 
 function PlaneScene() {
-
+    
+    var glScene = null;
     var scene = null;
     var signalMarks = [];
     var plane = null;
@@ -300,15 +313,37 @@ function PlaneScene() {
         var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
         
         var scene = CCScene.create();
-        scene.setContentSize(CCSizeMake(320, 320*h/w));
+        
+        if( !Sys.isAndroid && !Sys.isIOS ) {
+            scene.setContentSize(CCSizeMake(320, 520));
+        } else {
+            scene.setContentSize(CCSizeMake(320, 320*h/w));
+        }
+        
         scene.setColor(skyColor);
         scene.setTouchEnabled(true);
-        scene.setVisible(false);
+        //scene.setVisible(false);
         scene.element.setAttribute('class','scene');
         
         return scene;
     }
-
+    
+    function CreateTransparentScene() {
+        
+        var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+        var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+        
+        var scene = CCScene.create();
+        
+        if( !Sys.isAndroid && !Sys.isIOS ) {
+            scene.setContentSize(CCSizeMake(320, 520));
+        } else {
+            scene.setContentSize(CCSizeMake(320, 320*h/w));
+        }
+        
+        return scene;
+    }
+    
     function AddClouds( scene ) {
 
         function initCloud(c) {
@@ -328,10 +363,10 @@ function PlaneScene() {
             var seq = [];
             if( !c.inited ) {
                 moveTime *= (c.width/2 + c.x) / (scene.width+c.width);
-                seq.push( MoveBy( moveTime, -(c.width/2 + c.x)) );
+                seq.push( MoveBy( moveTime, -(c.width/2 + c.x), 0) );
             } else {
                 seq.push( DelayTime(delayTime));
-                seq.push( MoveBy( moveTime, -(scene.width+c.width)));
+                seq.push( MoveBy( moveTime, -(scene.width+c.width), 0));
             }
 
             seq.push( CallFunc(initCloud));
@@ -373,7 +408,8 @@ function PlaneScene() {
             var pitch = -1*Math.sin(v)*pitchRange;
 
             plane.setPosition( scene.width/2, scene.height/2 + h );
-            plane.element.style.transform = "rotate("+pitch+"deg)";
+            plane.setRotation(pitch);
+            //plane.element.style.transform = "rotate("+pitch+"deg)";
 
         })));
 
@@ -381,11 +417,12 @@ function PlaneScene() {
 
     function AddEarth(scene) {
         var earth = CCSprite.create( "earth.png");
-        scene.addChild(earth);
+        scene.addChild( earth );
         earth.setPosition(scene.width/2, scene.height+280);
-        earth.runAction(RepeatForever(ChangeValue(365, 0, -360, function(v){
-            earth.element.style.transform = "rotate("+v+"deg)";
+        earth.runAction(RepeatForever(ChangeValue(365, 0, -360, function(v) {
+            earth.setRotation(v);
         })));
+        return earth;
     }
     
     function Valid3DModelDiv(scene) {
@@ -411,10 +448,20 @@ function PlaneScene() {
                 dialog._viewBtn.setString(btnText);
             }
             
+            var link = div.getAttribute("link");
+            if( link ) {
+                dialog._viewBtn._link = link;
+            } else {
+                dialog._viewBtn._link = null;
+            }
+            
             var ul = document.getElementById('dowebok');
             ul.innerHTML = div.innerHTML;
             
-            viewer.destroy();
+            if( typeof(viewer) !== 'undefined' ) {
+                viewer.destroy();
+                viewer = undefined;
+            }
             viewer = new Viewer(document.getElementById('dowebok'), {
                 url: 'data-original'
             });
@@ -470,6 +517,7 @@ function PlaneScene() {
         dialog.setText = function(text) {
             resultLabelShaddow.setString(text);
             resultLabel.setString(text);
+            resultLabelShaddow.element.id = "shaddow";
         };
 
         dialog.beginTextAnimate = function( text, baseText, endText) {
@@ -506,17 +554,38 @@ function PlaneScene() {
         dialog._curIndex = 0;
         dialog.show = function( text, baseText, endText) {
             
-            if( text === "" ) {
+            var flipAudio = document.getElementById('FlipPage');
+            if(flipAudio) flipAudio.play();
+            
+            if( contents[currentPageIndex].hideBackground ) {
                 dialog.setOpacity(0);
             } else {
                 dialog.setOpacity(0.1);
             }
             
-            pageIndexLabel.setString( "");
-
+            if( contents[currentPageIndex].allowComment ) {
+                if(typeof(commentInputer) !== 'undefined')
+                    commentInputer.enable();
+            } else {
+                if(typeof(commentInputer) !== 'undefined')
+                    commentInputer.disable();
+            }
+            
+            if( contents[currentPageIndex].showRainbow ) {
+                if( typeof(rainbow) !== 'undefined' ) {
+                    rainbow.show();
+                }
+            } else {
+                if( typeof(rainbow) !== 'undefined' ) {
+                    rainbow.hide();
+                }
+            }
+            
+            pageIndexLabel.setString("");
+            
             dialog.runAction(
                 Sequence(
-                    [
+                    [ 
                         Ease(
                             ease.elastic, 
                             ChangeValue( 0.5, 0, 1, function(v) {
@@ -525,7 +594,8 @@ function PlaneScene() {
                         ),
                         CallFunc(function() {
                             if( dialog._curIndex > 0 ) {
-                                pageIndexLabel.setString( "- " + dialog._curIndex + " -");
+                                if( !contents[currentPageIndex].hidePageIndex )
+                                    pageIndexLabel.setString( "- " + dialog._curIndex + " -");
                             }
                             dialog.beginTextAnimate( text, baseText, endText);
                         })
@@ -652,6 +722,9 @@ function PlaneScene() {
             if( touchLayer._viewBtn !== null ) {
                 touchLayer._viewBtn.setVisible(false);
             }
+            if(typeof(inputElement)!=='undefined') {
+                inputElement.cancel();
+            }
         };
         
         touchLayer.touchMoved = function( x, y) {
@@ -670,24 +743,26 @@ function PlaneScene() {
                 touchLayer._controledObject.back();
             } 
             else if ( dx < -1*minFlipDistance ) {
-                
                 if( currentPageIndex + 1 < contents.length ) {
                     currentPageIndex += 1;
                     touchLayer._controledObject.forward();
+                    if( typeof(commentRef) !== 'undefined' ) {
+                        commentRef.setPage(currentPageIndex);
+                    }
                 } else {
                     touchLayer._controledObject.back();
                 }
-
             } 
             else if ( dx > minFlipDistance ) {
-
                 if( currentPageIndex - 1 >= 0 ) {
                     currentPageIndex -= 1;
                     touchLayer._controledObject.backward();
+                    if( typeof(commentRef) !== 'undefined' ) {
+                        commentRef.setPage(currentPageIndex);
+                    }
                 } else {
                     touchLayer._controledObject.back();
                 }
-
             }
 
             beginX = -1;
@@ -712,7 +787,21 @@ function PlaneScene() {
         viewBtn.setTextAlign("center");
         viewBtn.setPosition( scene.width/2, (scene.height-70));
         viewBtn.setTouchEnabled(true);
-        viewBtn.touchEnded = ViewPlaneDrawing;
+        viewBtn.touchEnded = function() {
+            
+            var audio = document.getElementById("Button");
+            if(audio) audio.play();
+            
+            if(viewBtn._link) {
+                cilpboard().copyText( viewBtn._link, function(ok) {
+                    if(ok) {
+                        viewBtn.setString("已复制淘口令,打开手机淘宝查看");
+                    }
+                });
+            } else {
+                ViewPlaneDrawing();
+            }
+        }
         
         viewBtn.runAction( RepeatForever(Sequence([ FadeTo(0.8,0.3), FadeTo(0.8,1)])) );
         
@@ -722,30 +811,363 @@ function PlaneScene() {
     }
 
     function AddRainbow(scene) {
-        var rainbow = CCSprite.create( "rainbow.png");
+        
+        rainbow = CCSprite.create( "rainbow.png");
         scene.addChild(rainbow);
+        
         rainbow.onload = function() {
             rainbow.setPosition( scene.width*1.2, rainbow.height/6);
         }
+        
+        rainbow.setVisible(false);
+        
+        rainbow.hiding = false;
+                
+        rainbow.show = function() {
+            rainbow.hiding = false;
+            rainbow.stopAllActions();
+            rainbow.setVisible(true);
+            rainbow.setOpacity(0);
+            rainbow.runAction(Sequence([DelayTime(3),FadeIn(1)]));
+        }
+        
+        rainbow.hide = function() {
+            if( (!rainbow.isVisible()) || (rainbow.hiding) ) return;
+            rainbow.hiding = true;
+            rainbow.stopAllActions();
+            rainbow.runAction(Sequence([FadeOut(1),CallFunc(function(){
+                rainbow.setVisible(false);
+                rainbow.hiding = false;
+            })]));
+        }
+        
+    }
+    
+    function getNowFormatDate() {
+        var date = new Date();
+        var seperator1 = "-";
+        var seperator2 = ":";
+        var month = date.getMonth() + 1;
+        var strDate = date.getDate();
+        if (month >= 1 && month <= 9) {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+            strDate = "0" + strDate;
+        }
+        var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+                + " " + date.getHours() + seperator2 + date.getMinutes()
+                + seperator2 + date.getSeconds();
+        return currentdate;
+    }
+    
+    var getRandomColor = function() {
+        var colors = [ ccc3( 0, 31, 62),    ccc3( 0, 166, 217),  ccc3( 127, 220, 254),
+                       ccc3( 58, 204, 204), ccc3( 178, 13, 203), ccc3( 47, 204, 63),
+                       ccc3( 2, 255, 112),  ccc3(254, 220, 1),   ccc3( 255, 66, 54),
+                       ccc3( 221, 221, 221)];
+        return colors[parseInt(colors.length*Math.random())%colors.length];
+    }
+    
+    function html_encode(str) {   
+        var s = "";   
+        if (str.length == 0) return "";   
+        s = str.replace(/&/g, "&gt;");   
+        s = s.replace(/</g, "&lt;");   
+        s = s.replace(/>/g, "&gt;");   
+        s = s.replace(/ /g, "&nbsp;");   
+        s = s.replace(/\'/g, "&#39;");   
+        s = s.replace(/\"/g, "&quot;");   
+        s = s.replace(/\n/g, "<br>");   
+        return s;   
     }
 
+    function OutputComment( comment ) {
+        var commentLabel = createLabelDefaultStyle( html_encode(comment), scene.width*1.5, 0);
+        scene.addChild(commentLabel);
+        commentLabel.setContentSize(CCSizeMake( scene.width, 30));
+        commentLabel.setAnchorpoint(0,0);
+        commentLabel.setColor(getRandomColor());
+        commentLabel.setPosition(scene.width, (scene.height-30)*Math.random());
+        commentLabel.setTextAlign("left");
+        commentLabel.runAction(Sequence([ MoveBy( 6, -(scene.width*2) ),CallFunc(function(){
+            commentLabel.removeFromParent();
+        })]));
+    }
+        
+    function EnableComment( scene ) {
+        
+        var config = {
+          authDomain: "fly.wilddogio.com",
+          syncURL: "https://fly.wilddogio.com/"
+        };
+        
+        wilddog.initializeApp(config);
+        
+        var old_comments = [];
+        
+        var ref = wilddog.sync().ref("/Pages");
+        ref._started = false;
+        ref._currentPage = -1;
+        
+	    ref.setPage = function( pageIndex ) {
+	        
+	        if( ref._currentPage >= 0 ) {
+	            ref.child("Page"+ref._currentPage).off(); // remove observer
+	            old_comments.length = 0; // remove data
+	        }
+	        
+	        ref._started = false;
+	        ref._currentPage = pageIndex;
+	        
+	        ref.child("Page"+ref._currentPage).on('child_added', function(snapshot) {
+        		var text = snapshot.val();
+        		if( ref._started === false ) {
+        		    cclog( "old comment:" + text);
+        		    old_comments.push(text);
+        		} else{
+        		    cclog( "new comment:" + text);
+        		    old_comments.push(text);
+        		    OutputComment( text);
+        		}
+	        });
+            
+	        if( pageIndex == 0 )
+	            ref.child('PageViewed').push(returnCitySN.cname + "|" + getNowFormatDate() + "|" + returnCitySN.cip);
+	        
+	        scene.runAction(Sequence([DelayTime(3),CallFunc(function(){
+	            ref._started = true;
+	        })]));
+	    }
+	    
+        ref.setPage(0);
+	    
+	    scene.runAction(RepeatForever(Sequence([DelayTime(3),CallFunc(function() {
+            if( old_comments.length > 0 )
+                OutputComment( old_comments[parseInt(Math.random()*old_comments.length)] );
+	    })])));
+	    
+	    commentRef = ref;
+    }
+    
+    function AddCommentInputer(scene) {
+        
+        commentInputer = {};
+        commentInputer._enabled = false;
+        
+        var commentBtn = CCSprite.create( "comment.png");
+        scene.addChild(commentBtn);
+        commentBtn.setAnchorpoint( 1, 1);
+        commentBtn.setPosition( scene.width-10, scene.height-10);
+        commentBtn.setScale(0.5);
+        commentBtn.setVisible(false);
+        commentBtn.setDepth(20);
+        
+        var inputLayerStandY =  scene.height+30;
+        
+        var inputLayer = CCLayer.create();
+        scene.addChild(inputLayer);
+        inputLayer.setContentSize( CCSizeMake( scene.width-50, 30 ) );
+        inputLayer.setAnchorpoint( 0.5, 1);
+        inputLayer.setPosition( scene.width/2, inputLayerStandY);
+        inputLayer.setDepth(20);
+        
+        var inputLayerBg = CCLayer.create();
+        inputLayer.addChild(inputLayerBg);
+        inputLayerBg.setContentSize( CCSizeMake( inputLayer.width, inputLayer.height ) );
+        inputLayerBg.setPosition( inputLayer.width/2, inputLayer.height/2);
+        inputLayerBg.setColor("#ffffff");
+        inputLayerBg.element.style.borderRadius = "15px";
+        inputLayerBg.setOpacity(0.3);
+        
+        var inputLayerFg = CCLayer.create();
+        inputLayer.addChild(inputLayerFg);
+        inputLayerFg.setContentSize( CCSizeMake( inputLayer.width-60, inputLayer.height ) );
+        inputLayerFg.setAnchorpoint( 0, 0);
+        inputLayerFg.setPosition( 15, 0);
+        inputLayerFg.element.innerHTML = "<input id='name_input' placeholder='请输入内容' style='text-align:left;outline:none;-webkit-input-placeholder:#fff;width:100%;height:32px;background:Transparent;color:#ffffff;font-size:16;border:none;'></input>";
+        inputLayerFg.setTouchEnabled(true);
+        inputLayerFg.setOpacity(0.86);
+        
+        inputElement = document.getElementById('name_input');
+        
+        var sendLabel = createLabelDefaultStyle( "发送", inputLayer.width, inputLayer.height/2);
+        inputLayer.addChild(sendLabel);
+        sendLabel.setAnchorpoint(1,0.5);
+        sendLabel.setContentSize(CCSizeMake( 50, 26));
+        sendLabel.setTextSize(18); //by px
+        sendLabel.setPosition( inputLayer.width-0.5, inputLayer.height/2);
+        sendLabel.setColor("#39f");
+        sendLabel.setTextAlign("center");
+        sendLabel.element.style.borderRadius = "10px";
+        sendLabel.element.style.lineHeight = "26px";
+        sendLabel.setOpacity(0.86);
+        sendLabel.setTouchEnabled(true);
+        
+        inputLayer._enabled = false;  // enabled is true means the comment inputer is out
+        sendLabel._enabled = false;   // sendLabel enabled means the input textbox is focused 
+        
+        inputLayer.enable = function() {
+            if( !inputLayer._enabled ) {
+                inputLayer._enabled = true;
+                inputLayer.stopAllActions();
+                inputLayer.runAction(Sequence([ Ease( ease.easeOutBack, MoveTo(0.5,scene.width/2,scene.height/2)), CallFunc(function(){
+                    var text = inputElement.value;
+                    if( text.length > 0 ) {
+                        inputElement.focus();
+                    }
+                })]));
+                inputLayer.setOpacity(0);
+                inputLayer.runAction(FadeIn(0.5));
+            }
+        }
+        
+        inputLayer.disable = function() {
+            if( inputLayer._enabled ) {
+                inputLayer.stopAllActions();
+                inputLayer.runAction(MoveTo(0.3,scene.width/2, inputLayerStandY));
+                inputLayer._enabled = false;
+                inputLayer.runAction(FadeOut(0.3));
+            }
+        }
+        
+        commentBtn.show = function() {
+            if( !commentBtn._enabled ) {
+                commentBtn._enabled = true;
+                commentBtn.stopAllActions();
+                commentBtn.setVisible(true);
+                commentBtn.setOpacity(0);
+                commentBtn.runAction(Sequence([FadeIn(0.5),CallFunc(function() {
+                    commentBtn.setTouchEnabled(true);
+                    commentBtn.runAction(RepeatForever(Sequence([ FadeTo(0.5,0.6), FadeTo(0.5,1)])));
+                })]));
+            }
+        }
+        
+        commentBtn.hide = function() {
+            if( commentBtn._enabled ) {
+                commentBtn._enabled = false;
+                commentBtn.stopAllActions();
+                commentBtn.runAction(Sequence([FadeOut(0.5),CallFunc(function() {
+                    commentBtn.setTouchEnabled(false);
+                    commentBtn.setVisible(false);
+                })]));
+            }
+        }
+        
+        commentBtn.touchEnded = function() {
+            if( !inputLayer._enabled ) {
+                var audio = document.getElementById("Button");
+                if(audio) audio.play();
+                inputLayer.enable();
+                commentBtn.hide();
+            }
+        }
+        
+        commentInputer.enable = function() {
+            if(!commentInputer._enabled) {
+                commentBtn.show();
+                commentInputer._enabled = true;
+            }
+        }
+        
+        commentInputer.disable = function() {
+            if(commentInputer._enabled) {
+                inputLayer.disable();
+                commentBtn.hide();
+                commentInputer._enabled = false;
+            }
+        }
+        
+        inputLayerFg.touchEnded = function() {
+            if( inputLayer._enabled ) {
+                inputElement.focus();
+            }
+        }
+        
+        inputElement.onfocus = function() {
+            sendLabel.runAction( RepeatForever(Sequence([ FadeTo(0.5,0.6), FadeTo(0.5,1)])) );
+            sendLabel._enabled = true;
+        }
+        
+        inputElement.onblur = function() {
+            sendLabel.stopAllActions();
+            sendLabel._enabled = false;
+            sendLabel.setOpacity(0.86);
+            
+            inputLayer.disable();
+            commentBtn.show();
+        }
+        
+        inputElement.cancel = function() {
+            if(commentInputer._enabled) {
+                if(sendLabel._enabled) {
+                    inputElement.blur();
+                }
+                inputElement.onblur();
+            }
+        }
+        
+        sendLabel.touchEnded = function() {
+            if( sendLabel._enabled 
+            && typeof(commentRef) !== 'undefined' ) {
+                var text = inputElement.value;
+                
+                if( text.length > 35 ) {
+                    alert("字数太长了！");
+                    return;
+                }
+                
+                if( text.length == 0 ) {
+                    return;
+                }
+                
+                if( text !== "" ) {
+                    commentRef.child("Page"+commentRef._currentPage).push(text);
+                    inputElement.value = "";
+                    inputElement.blur();
+                }
+            }
+        }
+    }
+    
+    function AudioAutoPlay(id){
+        var audio = document.getElementById(id);
+        audio.play();
+        document.addEventListener("WeixinJSBridgeReady", function () {
+            audio.play();
+        }, false);
+    }
+    
     (function init() {
         
         scene = CreateScene();
+        
+        if(!Sys.isIOS) EnableOpenGL(scene);
         
         AddClouds(scene);
         AddPlane(scene);
         AddRainbow(scene);
         AddEarth(scene);
         
+        if( scene._isGLNode ) {
+            glScene = scene;
+            scene = CreateTransparentScene();
+        }
+        
         dialog = AddDialog(scene);
         var touchLayer = AddTouchLayer(scene);
         touchLayer.setControledObject(dialog);
+        touchLayer.setDepth(10);
         
         var viewBtn = AddViewPlaneDrawingButton(scene);
         touchLayer._viewBtn = viewBtn;
         dialog._viewBtn = viewBtn;
-        
+        dialog._viewBtn.setDepth(15);
+                    
+        EnableComment( scene );
+        AddCommentInputer(scene);
+        AudioAutoPlay("BgMusic");
     })();
     
     var obj = new Object();
@@ -765,18 +1187,22 @@ function LoadingScene(sceneToLoad) {
     var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
     
     var scene = CCScene.create();
-    scene.setContentSize(CCSizeMake(320, 320*h/w));
+    if( !Sys.isAndroid && !Sys.isIOS ) {
+        scene.setContentSize(CCSizeMake(320, 520));
+    } else {
+        scene.setContentSize(CCSizeMake(320, 320*h/w));
+    }
     scene.setColor(skyColor);
     scene.element.setAttribute('class','scene');
     
-    var processLabel = createLabelDefaultStyle( "LOADING %0", scene.width/2, scene.height/2);
+    var processLabel = createLabelDefaultStyle( "LOADING 0%", scene.width/2, scene.height/2);
     scene.addChild(processLabel);
     processLabel.setContentSize(CCSizeMake(scene.width,20));
     processLabel.setColor("#FFFFFF");
     processLabel.setTextAlign("center");
     
     processLabel.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() {
-        processLabel.setString("LOADING %"+ parseInt(getLoadingPercentage()));
+        processLabel.setString("LOADING "+ parseInt(getLoadingPercentage()) + "%");
         if( isAllResourceReady() ) {
             sceneToLoad.show();
             scene.removeAllChildsAndCleanUp(true);
@@ -788,22 +1214,31 @@ function LoadingScene(sceneToLoad) {
 
 function LandscapeTipScene() {
     
+    var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+    var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+    
     var scene = CCScene.create();
-    scene.setContentSize(CCSizeMake(320, 480));
-    scene.setColor(skyColor);
+    if( !Sys.isAndroid && !Sys.isIOS ) {
+        scene.setContentSize(CCSizeMake(320, 520));
+    } else {
+        scene.setContentSize(CCSizeMake(320, 320*h/w));
+    }
     scene.setTouchEnabled(true);
     scene.setVisible(false);
+    scene.element.setAttribute('class','scene');
     
-    var tipLabel = createLabelDefaultStyle( "请竖屏观看！", 160, 240);
+    var tipLabel = createLabelDefaultStyle( "请竖屏观看！", scene.width/2, scene.height/2);
     scene.addChild(tipLabel);
     tipLabel.setContentSize(CCSizeMake(320,20));
-    tipLabel.setColor("#aa55cc");
     tipLabel.setTextAlign("center");
+    tipLabel.setOpacity(0.6);
     
     SetOrintationLisener(function(orintation) { //检测横竖屏旋转
         if( orintation === "landscape" ) {
+            //scene.setContentSize(CCSizeMake( 320, 320*window.innerHeight/window.innerWidth));
+            //tipLabel.setPosition( 160, window.innerWidth/2);
             //scene.setVisible(true);
-            //SetTimeScale(0);
+            SetTimeScale(0);
         } else if( orintation === "portrait" ){
             scene.setVisible(false);
             SetTimeScale(1);

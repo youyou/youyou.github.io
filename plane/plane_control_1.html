@@ -211,19 +211,61 @@
                     console.log("CONNECTED");
                     websocket.ready = true;
                     rainbow.runAction(FadeIn(1));
+                    if( typeof(batteryLayer) !== 'undefined' ) 
+                        batteryLayer.runAction(FadeIn(1));
                 };
                 websocket.onclose = function(evt) {
+                    
                     console.log("DISCONNECTED");
+                    
                     websocket.ready = false;
                     rainbow.runAction(FadeOut(1));
+
+                    if( typeof(batteryLayer) !== 'undefined' )  {
+                        batteryLayer.runAction(Sequence([FadeOut(1),CallFunc(function() {
+                            if( typeof(batteryLayer) !== 'undefined' )
+                                batteryLayer.destory();
+                        })]) );
+                    }
                 };
                 websocket.onmessage = function(evt) {
-                    console.log("Receive:" + evt.data);
+                    if( evt.data != 'h' ) {
+                        
+                        var value = parseInt(evt.data);
+                        var vadc  = (value/1024.0)*0.61/0.62890625;
+                        var v     = vadc*7.79/0.7520807453416148;
+
+                        // enable battery display when plane sends battery data
+                        if( typeof(batteryLayer) == 'undefined' ) {
+
+                            var tv = v;
+                            var s = 1;
+                            while( tv > 4.22 ) {
+                                s += 1;
+                                tv -= 4.22;
+                            }
+
+                            AddBattery(scene);
+                            batteryLayer.runAction(FadeIn(1));
+                            batteryLayer._s = s;
+                        }
+
+                        console.log("battery type:" + batteryLayer._s +"S v:" + v + " av:"+ (v/batteryLayer._s)+" vadc:"+vadc);
+
+                        if( typeof(batteryLayer) !== 'undefined' )
+                            batteryLayer.setBatteryPower(VotageToPercent(v/batteryLayer._s));
+                    }
                 };
                 websocket.onerror = function(evt) {
                     console.log("ERROR: " + evt.data);
                     rainbow.runAction(FadeOut(1));
                     websocket.ready = false;
+                    if( typeof(batteryLayer) !== 'undefined' )  {
+                        batteryLayer.runAction(Sequence([FadeOut(1),CallFunc(function() {
+                            if( typeof(batteryLayer) !== 'undefined' )
+                                batteryLayer.destory();
+                        })]) );
+                    }
                 };
             }
             
@@ -249,15 +291,15 @@
                     if(data) {
                         if(websocket.ready) {
                             websocket.send(data);
-                            console.log( "SENT:"+ data);
+                            //console.log( "SENT:"+ data);
                         }
-                        console.log( "IGNORED:"+ senderQueue.senderStack.length);
+                        //console.log( "IGNORED:"+ senderQueue.senderStack.length);
                         senderQueue.senderStack = [];
                     } else if( senderQueue.heartBeatCounter++ > maxHeartBeatCounterValue) {
                         senderQueue.heartBeatCounter = 0;
                         if(websocket.ready) {
                             websocket.send('h');
-                            console.log( "SENT:h");
+                            //console.log( "SENT:h");
                         }
                         else {
                             CreateWebSocket();
@@ -278,8 +320,8 @@
             
             function SetPlaneSpeed( speed, dir) {
 
-                console.log( "speed: " + speed + " dir:" + dir);
-                
+                //console.log( "speed: " + speed + " dir:" + dir);
+
                 // effect when reach bounds 
                 if(    ( (speed === 0 || speed === 1) && speed != lastSpeed )
                     || ( (dir === -1 || dir === 1) && dir != lastDir ) 
@@ -289,7 +331,14 @@
                 lastSpeed = speed;
                 lastDir = dir;
                 
+                // if( typeof(batteryLayer) !== 'undefined'
+                //     && typeof(batteryLayer._s) !== 'undefined' ) {
+                //     speed /= batteryLayer._s;
+                //     dir /= batteryLayer._s;
+                // }
                 
+                console.log( "speed: " + speed + " dir:" + dir);
+
                 var value = parseInt(speed*1023);
                 value = value < 1023 ? value : 1023;
                 value = value > 0 ? value : 0;
@@ -306,7 +355,7 @@
                 //console.log( "v1: " + v1 + " v2:" + v2);
                 var message = v2+"|"+v1;
 
-                console.log("SENT: " + message );
+                //console.log("SENT: " + message );
                 senderQueue.send(message);
             }
             
@@ -456,7 +505,116 @@
                     tipLabel.removeFromParent();
                 })]));
             }
-            
+
+            function VotageToPercent(votage) {
+                
+                var votages = [4.22, 4.15, 4.14, 4.12, 4.10, 4.08, 4.05, 4.03, 3.97, 3.93, 3.90, 3.87, 3.84, 3.81, 3.79, 3.77, 3.76, 3.76, 3.74, 3.73, 3.72, 3.71, 3.69, 3.66, 3.65, 3.64, 3.63, 3.61, 3.59, 3.58];
+                
+                var energyLeft = [100, 99, 97, 95, 92, 90, 87, 85, 80, 75, 70, 65, 60, 55, 50, 45, 42, 40, 35, 30, 25, 20, 15, 12, 10, 8, 5, 3, 1, 0];
+                
+                var index = 0;
+                for ( index = votages.length - 1; index >= 0; index--) {
+                    if( votages[index] > votage) break;
+                };
+                
+                if( index >= (votages.length-1) ) {
+                    return 0;
+                }
+                
+                cclog("index:"+index);
+
+                var vRange = votages[index] - votages[index+1];
+                var vOff   = votages[index] - votage;
+                
+                var energyRange = energyLeft[index] - energyLeft[index+1];
+                var energyOff   = energyRange * vOff/vRange;
+
+                return energyLeft[index]-energyOff;
+            }
+
+            function AddBattery(scene) {
+
+                batteryLayer = CCLayer.create();
+                batteryLayer.setContentSize(CCSizeMake( 60, 32));
+                batteryLayer.setAnchorpoint( 0, 0);
+                batteryLayer.setPosition( 16, 42);
+                batteryLayer.element.style.borderColor = "#eeeeee";
+                batteryLayer.element.style.borderStyle = "solid";
+                batteryLayer.element.style.borderRadius = "5px";
+                scene.addChild(batteryLayer);
+
+                var element1 = CCLayer.create();
+                element1.setContentSize(CCSizeMake( 3, 10));
+                element1.setAnchorpoint( 0, 0.8);
+                element1.setPosition( batteryLayer.width, batteryLayer.height/2);
+                element1.setColor("#eeeeee");
+                element1.element.style.borderColor = "#eeeeee";
+                element1.element.style.borderStyle = "solid";
+                element1.element.style.borderRadius = "3px";
+                batteryLayer.addChild(element1);
+
+                var energyLayer = CCLayer.create();
+                energyLayer.setContentSize(CCSizeMake( 60, 32));
+                energyLayer.setAnchorpoint( 0, 0);
+                energyLayer.setPosition( 0, 0);
+                energyLayer.setColor(ccc3(111,222,111));
+                energyLayer.setOpacity(0.6);
+                batteryLayer.addChild(energyLayer);
+
+                var powerFilter = CreateFilter(0.0075);
+
+                batteryLayer.setBatteryPower = function(percent) {
+                    
+                    percentFiltered = powerFilter.getoutput(percent);
+                    
+                    if(percentFiltered>100){ percentFiltered = 100;}
+                    if(percentFiltered<0) { percentFiltered = 0;}
+                    
+                    if( percentFiltered < 15 ) {
+                        energyLayer.setColor(ccc3( 255, 0, 0));
+                    }
+                    energyLayer.setContentSize(CCSizeMake( 60*percentFiltered/100.0, 32));
+
+                    batteryLayer._heartbeatCounter = 0;
+                    cclog( "battery: " + percent + "% filtered:" + percentFiltered);
+                }
+
+                batteryLayer.setOpacity(0);
+
+                function EnableConnectionChecking() {
+
+                    batteryLayer._heartbeatCounter = 0;
+
+                    function CountHeartbeat() {
+                        if( ++batteryLayer._heartbeatCounter >= 5 ) {
+                            websocket.ready = false;
+                            rainbow.runAction(FadeOut(1));
+                            batteryLayer.runAction(FadeOut(1));
+                            websocket.close();
+                            batteryLayer._heartbeatCounter = 0;
+                        }
+                        cclog("hearbeatCounter:"+batteryLayer._heartbeatCounter);
+                    }
+
+                    batteryLayer.runAction(RepeatForever(Sequence([DelayTime(1),CallFunc(function() {
+                        if(websocket.ready)
+                            CountHeartbeat();
+                    })])));
+                }
+
+                EnableConnectionChecking();
+
+                batteryLayer.destory = function () {
+                    if( typeof(batteryLayer) !== 'undefined' ) {
+                        batteryLayer.stopAllActions();
+                        batteryLayer.removeFromParent();
+                        batteryLayer = undefined;
+                    }
+                }
+
+                return batteryLayer;
+            }
+
             (function init() {
                 
                 scene = CreateScene();
@@ -475,6 +633,8 @@
                 
                 AddIpConfigure(scene);
                 AddStartUpTip(scene);
+                //AddBattery(scene);
+
             })();
             
             var obj = new Object();

@@ -1,0 +1,93 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=320 user-scalable=no"/>
+        <meta name="x5-orientation" content="portrait"/>
+        <meta name="x5-fullscreen" content="true" />
+        <meta name="x5-page-mode" content="app" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <link rel="apple-touch-startup-image" href="start.png" media="(device-height:1334px)" />
+        <link rel="apple-touch-icon" href="icon.png"/>
+        <title>技术支持</title>
+        <style>
+        .scene {
+             /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,7db9e8+100 */
+            background: rgb(30,87,153); /* Old browsers */
+            background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */        
+        }
+        </style>
+    </head>
+    <body ondragstart="return false;"  ondrop="return false;" bgcolor=#FFFFFF style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#fffffff >
+    </body>
+    <script src="cocos2d-adapter.js"></script>
+    <script>
+
+        function CreateScene() 
+        {
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            
+            var scene = CCScene.create();
+            scene.setContentSize(CCSizeMake(w, h));
+            scene.setTouchEnabled(true);            
+            scene.element.setAttribute('class','scene');
+
+            scene.layout = function ( w, h) {    
+                scene.setContentSize(CCSizeMake(w, h));
+                for (var i = 0; i < scene.childs.length; i++) {
+                    if( typeof(scene.childs[i].layout) !== "undefined" ) {
+                        scene.childs[i].layout( w, h);
+                    }
+                };
+            }
+
+            function resize() {
+                w = window.innerWidth;
+                h = window.innerHeight;
+            }
+
+            scene.runAction(RepeatForever(Sequence([ DelayTime(0.1), CallFunc(function(){
+                if( scene.width != w || scene.height != h ){
+                    scene.layout( w, h);
+                }
+            })])));
+
+            window.addEventListener('resize', resize);
+
+            return scene;
+        }
+
+        StartAnimation(1/60);
+
+        var scene = CreateScene();
+
+        var label = CCLabel.create();
+        scene.addChild(label);
+        label.setString("技术支持");
+        label.layout = function( w, h) {
+            label.setContentSize(CCSizeMake( scene.width, 50));
+            label.setPosition(w/2,h/2-50);
+        }
+        label.layout( scene.width, scene.height);
+        label.setFontSize(35);
+        label.setAnchorpoint(0.5, 0.5);
+        label.setTextAlign("center");
+        
+        var emailLabel = CCLabel.create();
+        scene.addChild(emailLabel);
+        emailLabel.setString("联系邮箱:youyoukuu@gmail.com");
+        emailLabel.layout = function( w, h) {
+            emailLabel.setContentSize(CCSizeMake( scene.width, 50));
+            emailLabel.setPosition(w/2,h/2);
+        }
+        emailLabel.layout( scene.width, scene.height);
+        emailLabel.setFontSize(25);
+        emailLabel.setAnchorpoint(0.5, 0.5);
+        emailLabel.setTextAlign("center");
+
+    </script>
+</html>

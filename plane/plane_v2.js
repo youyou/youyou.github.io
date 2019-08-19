@@ -1238,10 +1238,10 @@ function LandscapeTipScene() {
             //scene.setContentSize(CCSizeMake( 320, 320*window.innerHeight/window.innerWidth));
             //tipLabel.setPosition( 160, window.innerWidth/2);
             //scene.setVisible(true);
-            SetTimeScale(0);
+            //SetTimeScale(0);
         } else if( orintation === "portrait" ){
             scene.setVisible(false);
-            SetTimeScale(1);
+            //SetTimeScale(1);
         }
     });
 }

@@ -41,7 +41,7 @@ function show(result) {
 
 function Query(value) {
     dictionary.beginQuery();
-    jsonp("http://fanyi.youdao.com/openapi.do?keyfrom=englishlearning&key=519282062&type=data&doctype=jsonp&callback=show&version=1.1&q="+value);
+    jsonp("https://fanyi.youdao.com/openapi.do?keyfrom=englishlearning&key=519282062&type=data&doctype=jsonp&callback=show&version=1.1&q="+value);
 }
 
 function OnQuery() {

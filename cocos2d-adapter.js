@@ -293,6 +293,7 @@ function __SetContentSize( node, size) {
 }
 
 function SetContentSize( node, size) {
+    
     if(  typeof(node.originalWidth) !== "undefined" ) {
         assert( typeof(node.originalHeight) !== "undefined", "has originalWidth but no originalHeight");
         node.scalex = size.width/node.originalWidth;
@@ -300,6 +301,12 @@ function SetContentSize( node, size) {
         UpdateNodeScale( node );
     } else {
         __SetContentSize( node, size);
+    }
+    
+    for (var i = 0; i < node.childs.length; i++) {
+        if( node.childs[i].layout ) {
+            node.childs[i].layout( node.width, node.height);
+        }
     }
 }
 
@@ -646,6 +653,7 @@ function CCNode_instance() {
     this.childs = new Array();
     this.parent = null;
     this.transform = new Object();
+    this.layout = null;
 
     this.scalex = this.scaley = this.transform.scalex = this.transform.scaley = 1;
     this.rotation = this.transform.rotation = 0;

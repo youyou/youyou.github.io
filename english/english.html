@@ -1,0 +1,147 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=320 user-scalable=no"/>
+        <meta name="x5-orientation" content="portrait"/>
+        <meta name="x5-fullscreen" content="true" />
+        <meta name="x5-page-mode" content="app" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <link rel="apple-touch-startup-image" href="start.png" media="(device-height:1334px)" />
+        <link rel="apple-touch-icon" href="icon.png"/>
+        <title>技术支持</title>
+        <style>
+        .scene {
+             /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,7db9e8+100 */
+            background: rgb(30,87,153); /* Old browsers */
+            background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */        
+        }
+        </style>
+    </head>
+    <body ondragstart="return false;"  ondrop="return false;" bgcolor=#FFFFFF style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#fffffff >
+    </body>
+    <script src="cocos2d-adapter.js"></script>
+    <script>
+
+        function CreateScene() 
+        {
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            
+            var scene = CCScene.create();
+            scene.setContentSize(CCSizeMake(w, h));
+            scene.setTouchEnabled(true);
+            scene.element.setAttribute('class','scene');
+
+            function resize() {
+                w = window.innerWidth;
+                h = window.innerHeight;
+            }
+
+            scene.runAction(RepeatForever(Sequence([ DelayTime(0.1), CallFunc(function() {
+                if( scene.width != w || scene.height != h ) {
+                    scene.setContentSize(CCSizeMake(w, h));
+                }
+            })])));
+
+            window.addEventListener('resize', resize);
+
+            return scene;
+        }
+
+        var scene = CreateScene();
+
+        var layerBg = CCLayer.create();
+        scene.addChild(layerBg);
+        layerBg.setColor("#ffffff");
+        layerBg.setOpacity(0.1);
+        layerBg.layout = function( w, h) {
+            this.setPosition( w/2, h/2);
+            this.setContentSize( CCSizeMake( w-130, 160) );
+        }
+        layerBg.layout(scene.width, scene.height);
+
+        var layer = CCLayer.create();
+        scene.addChild(layer);
+        layer.layout = function( w, h) {
+            this.setPosition( w/2, h/2);
+            this.setContentSize( CCSizeMake( w-160, 160) );
+        }
+        layer.layout(scene.width, scene.height);
+
+        var labels = [];
+        var num_parts = 7;
+
+        for (var i = 0; i < num_parts; i++) {
+            
+            labels[i] = CCLabel.create();
+            layer.addChild(labels[i]);
+            labels[i].setAnchorpoint( 0.0, 0.5);
+            labels[i].setFontSize(15);
+            labels[i].setString("");
+            labels[i].index = i;
+            labels[i].layout = function( w, h) {
+                this.setContentSize(CCSizeMake( w/num_parts-10, 50));
+                this.setPosition( (w/num_parts)*(this.index)+5,h/2);
+                this.adjustTextLength(this.width);
+            }
+            labels[i].layout( layer.width, layer.height);
+            
+            labels[i].setBgColor("#00aa00");
+            if( i%2==1 || i==0 ) labels[i].setBgColor("#ffaaaa");
+            labels[i].element.style.borderRadius = "10px";
+            labels[i].setTextAlign("center");
+        };
+
+        function swap( i1, i2) {
+            var aimPos     = ccp( labels[i2].x, labels[i2].y);
+            var controlPos = ccp( (labels[i1].x+labels[i2].x)/2, labels[i1].y - 150);
+            labels[i1].runAction(BezierCurve( 0.6, controlPos, aimPos));
+            labels[i2].runAction(MoveTo( 0.6, labels[i1].x, labels[i1].y));
+        }
+
+        function reorder() {
+            swap(1,2);
+            swap(3,4);
+            swap(5,6);
+        }
+        
+        function translate(texts) {
+            for (var i = 0; i < labels.length; i++) {
+                labels[i].setString(texts[i]);
+            }
+        }
+        
+        //var texts = ["状语1","定语1","主语","状语2","谓语","定语2","宾语"];
+        //translate(texts);
+
+        var texts = ["在北京,","没有钱的","年轻人","以这种方式","也能实现","他们心中的","梦想"];
+        translate(texts);
+        var english_texts = ["In Beijing,", "without money", "the young", "in this way", "can realize", "in their hearts", "the dreams"];
+        var translate_sequence = [0,2,1,4,3,6,5];
+        var translate_index = 0;
+        scene.runAction(Sequence([
+                DelayTime(6),
+                CallFunc(function(){swap(1,2);}),
+                DelayTime(1),
+                CallFunc(function(){swap(3,4);}),
+                DelayTime(1),
+                CallFunc(function(){swap(5,6);}),
+                DelayTime(1),
+                Repeat(Sequence([
+                        DelayTime(1),
+                        CallFunc(function() {
+                            var index = translate_sequence[translate_index++];
+                            labels[index].setString(english_texts[index]);
+                            labels[index].adjustTextLength(labels[index].width);
+                        })
+                    ]),7)
+            ]));
+
+        StartAnimation(1/60);
+
+    </script>
+</html>

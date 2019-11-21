@@ -189,7 +189,7 @@ var contents  = [
                                     "<li>螺旋桨[4.5cm]</li>" +
                                     "<li>DIY专用胶水</li>" +
                                 "</ul>" +
-                                "<br/><div id='PlaneDrawing' btnText='如何获得材料' style='display:none;' link='￥Uhhgffjcf￥' />"
+                                "<br/>" // <div id='PlaneDrawing' btnText='如何获得材料' style='display:none;' link='￥Uhhgffjcf￥' />
                     },
                     {
                         text:"制作机身",
@@ -1164,8 +1164,10 @@ function PlaneScene() {
         touchLayer._viewBtn = viewBtn;
         dialog._viewBtn = viewBtn;
         dialog._viewBtn.setDepth(15);
-                    
-        EnableComment( scene );
+        
+        if( typeof(wilddog) !== "undefined" )       
+            EnableComment( scene );
+
         AddCommentInputer(scene);
         AudioAutoPlay("BgMusic");
     })();

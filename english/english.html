@@ -33,6 +33,7 @@
             
             var scene = CCScene.create();
             scene.setContentSize(CCSizeMake(w, h));
+            scene.setPosition(w/2,h/2);
             scene.setTouchEnabled(true);
             scene.element.setAttribute('class','scene');
 
@@ -40,13 +41,14 @@
                 w = window.innerWidth;
                 h = window.innerHeight;
             }
-
+            
             scene.runAction(RepeatForever(Sequence([ DelayTime(0.1), CallFunc(function() {
                 if( scene.width != w || scene.height != h ) {
                     scene.setContentSize(CCSizeMake(w, h));
+                    scene.setPosition(w/2,h/2);
                 }
             })])));
-
+            
             window.addEventListener('resize', resize);
 
             return scene;

@@ -498,7 +498,7 @@ function SetTouchEnabled(node, bEnabled) {
         else {
             node.element.onmousemove = move;
             node.element.onmouseup = stop;
-            node.element.onmouseout = cancel;
+            node.element.onmouseleave = cancel;
         }
     }
 
@@ -517,6 +517,9 @@ function SetTouchEnabled(node, bEnabled) {
     }
 
     function stop(e) {
+        
+        if( typeof(node.name)!=="undefined" )
+            cclog("stop called!!!!" +  node.name );
 
         LAST_USER_ACTION_TIME = new Date;
 
@@ -525,9 +528,13 @@ function SetTouchEnabled(node, bEnabled) {
 
         getXYFromEvent(e);
 
+        if( typeof(node.name)!=="undefined" )
+            cclog("ended called!!!!111" +  node.name);
+
         if (node.touchEnded != null) {
             node.touchEnded(x, y);
         }
+        
 
         if (Sys.mobileSafari) {
             node.element.removeEventListener("touchmove", move, false);
@@ -547,7 +554,8 @@ function SetTouchEnabled(node, bEnabled) {
 
         if (e && typeof (e.preventDefault) !== 'undefined')
             e.preventDefault();
-
+        
+        //if( e.target !== node.element ) return;
         // var contains = function(wrap, child) {
         //     if (IS_IE) return wrap.contains(child);
         //     while (child && typeof (child.parentNode) != "undefind") {
@@ -1127,9 +1135,8 @@ function CCLabel_instance(parent_instance, str) {
 
     parent_instance.setBgColor = function(color) {
         parent_instance._setColor(color);
-        cclog("color:"+parent_instance.color);
     }
-
+    
     parent_instance.setColor = function (color) {
         parent_instance.element.style.color = color.toString();
     };
@@ -2729,9 +2736,14 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
             return reuseCell;
         } else {
             var cell = CCLayer.create();
-            cell.setContentSize(CCSizeMake(size.width, cellHeight));
+            cell.name = "cell";
+            cell.layout = function(w,h) {
+                cell.setContentSize(CCSizeMake(w, cellHeight));
+            }
+            cell.layout(size.width, size.height);
+
             cell.setAnchorpoint(0, 0);
-            cell.setTouchEnabled(true);
+            //cell.setTouchEnabled(true);
             cell.focuse = null;
             cell.unfocus = null;
             return cell;
@@ -2931,8 +2943,8 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
         return false;
     }
 
-    tableView.touchEnded = function (x, y) {
-
+    tableView.touchEnded = function (x, y) 
+    {
         if (!BounceBack()) {
             tableView.stopAllActions();
 
@@ -2973,7 +2985,7 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
     }
 
     tableView.touchCanceled = function (x, y) {
-
+        
         tableView.stopAllActions();
 
         var bounce = 0;
@@ -2984,15 +2996,23 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
         else if (tableView.y_offset > tableView.y_offset_range_high_boundary) {
             bounce = tableView.y_offset_range_high_boundary - tableView.y_offset;
         }
-
+        
         if (Math.abs(bounce) > 0.5) {
             tableView.runAction(Ease(ease.bounce, ChangeValue(0.5, tableView.y_offset, bounce, function (v) {
                 tableView.setOffset(v);
             })));
         }
-
+        
         unfocusCell(focusedIndex);
         focusedIndex = -1;
+    }
+
+
+    tableView._setContentSize = tableView.setContentSize;
+    tableView.setContentSize = function(newSize) {
+        tableView._setContentSize(newSize);
+        size = newSize;
+        tableView.reload();
     }
 
     return tableView;
@@ -3422,9 +3442,9 @@ function makeOrtho(
     var tz = -(zfar + znear) / (zfar - znear);
 
     return [2 / (right - left), 0, 0, tx,
-        0, 2 / (top - bottom), 0, ty,
-        0, 0, -2 / (zfar - znear), tz,
-        0, 0, 0, 1];
+            0, 2 / (top - bottom), 0, ty,
+            0, 0, -2 / (zfar - znear), tz,
+            0, 0, 0, 1];
 }
 
 function UpdateWebGLAnchorpoint(node) {
@@ -3466,12 +3486,12 @@ function InitNodeRender(node) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordBuffer), gl.STATIC_DRAW);
 
     node._gl_render = function () {
-
+        
         if (!node._texture_ready || !node.visible) return;
-
+        
         gl.bindBuffer(gl.ARRAY_BUFFER, node._vertexBuffer);
         gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
-
+        
         gl.bindBuffer(gl.ARRAY_BUFFER, node._vertexTextureCoordBuffer);
         gl.vertexAttribPointer(vertexTextureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 

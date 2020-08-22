@@ -25,7 +25,7 @@
     </body>
     <script src="cocos2d-adapter.js"></script>
     <script>
-        
+
         function CreateScene() 
         {
             var w = window.innerWidth;
@@ -63,15 +63,11 @@
             var table = null;
 
             function cellSelected( index, event) {
-                switch(event) {
+                switch(event)
+                {
                     case "end":
                         cclog("will jump to:"+getHrefOfItem(index));
-                        table.runAction(Sequence([FadeOut(0.25),Hide(),CallFunc(function(){
-                            window.location.href = getHrefOfItem(index);
-                        },null)]));
-                        // viewLayer.setVisible(true);
-                        // viewLayer.setOpacity(0);
-                        // viewLayer.runAction(FadeIn(0.25));
+                        window.location.href = getHrefOfItem(index);
                         break;
                 }
             }
@@ -140,7 +136,7 @@
         }
 
         var scene = CreateScene();
-        
+
         var layer = CCLayer.create();
         layer.setColor("#ffffff");
         layer.setBgOpacity(0.2);
@@ -151,7 +147,7 @@
             this.setContentSize( CCSizeMake( w-60, h-60) );
         }
         layer.layout(scene.width, scene.height);
-        
+
         var label = CCLabel.create("功能菜单");
         label.setColor("#aaffaa");
         label.setPosition( 0, 0);

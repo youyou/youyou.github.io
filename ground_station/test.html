@@ -1,0 +1,158 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=320 user-scalable=no"/>
+        <meta name="x5-orientation" content="portrait"/>
+        <meta name="x5-fullscreen" content="true" />
+        <meta name="x5-page-mode" content="app" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <link rel="apple-touch-startup-image" href="start.png" media="(device-height:1334px)" />
+        <link rel="apple-touch-icon" href="icon.png"/>
+        <title>QuickIOT</title>
+        <style>
+            .mui-switch {
+                width: 52px;
+                height: 31px;
+                position: relative;
+                border: 1px solid #dfdfdf;
+                background-color: #fdfdfd;
+                box-shadow: #dfdfdf 0 0 0 0 inset;
+                border-radius: 20px;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+                background-clip: content-box;
+                display: inline-block;
+                -webkit-appearance: none;
+                user-select: none;
+                outline: none;
+                transform: scale(0.68, 0.68);
+            }
+            .mui-switch:before {
+                content: '';
+                width: 29px;
+                height: 29px;
+                position: absolute;
+                top: 0px;
+                left: 0;
+                border-radius: 20px;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+                background-color: #fff;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+                .mui-switch:checked {
+                border-color: #64bd63;
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63; }
+                .mui-switch:checked:before {
+                left: 21px; }
+                .mui-switch.mui-switch-animbg {
+                transition: background-color ease 0.4s; }
+                .mui-switch.mui-switch-animbg:before {
+                transition: left 0.3s; }
+                .mui-switch.mui-switch-animbg:checked {
+                box-shadow: #dfdfdf 0 0 0 0 inset;
+                background-color: #64bd63;
+                transition: border-color 0.4s, background-color ease 0.4s; }
+                .mui-switch.mui-switch-animbg:checked:before {
+                transition: left 0.3s; }
+                .mui-switch.mui-switch-anim {
+                transition: border cubic-bezier(0, 0, 0, 1) 0.4s, box-shadow cubic-bezier(0, 0, 0, 1) 0.4s; }
+                .mui-switch.mui-switch-anim:before {
+                transition: left 0.3s; }
+                .mui-switch.mui-switch-anim:checked {
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63;
+                transition: border ease 0.4s, box-shadow ease 0.4s, background-color ease 1.2s; }
+                .mui-switch.mui-switch-anim:checked:before {
+                transition: left 0.3s; 
+                transform: scale(0.68, 0.68);
+            }
+        </style>
+    </head>
+    <body ondragstart="return false;"  ondrop="return false;" bgcolor=#FFFFFF style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#fffffff >
+        <style>
+        .scene {
+             /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,7db9e8+100 */
+            background: rgb(30,87,153); /* Old browsers */
+            background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */        
+        }
+        </style>
+        <!-- <div id='3dmodel' width=300 height=300 zIndex=100000 model='model/headStrengthen.stl'/> -->
+    </body>
+    <script src="cocos2d-adapter.js"></script>
+    <script src="js/jquery-1.11.1.min.js"></script>
+    <script src="js/three.min.js"></script>
+    <script src="js/STLLoader.js"></script>
+    <script src="js/ColladaLoader.js"></script>
+    <script src="js/Detector.js"></script>
+    <script>
+
+        var profiles = 
+        [
+            {   
+                "DEVICE_NAME" : "默认设备",
+
+                "DEVICE_IP" : "192.168.4.1",
+
+                "FILTERS_ENABLED" : false,
+                
+                "FILTERS" : {
+                },
+                
+                "DICT_ENABLED" : false,
+
+                "DICT" : {
+                }
+            },
+            {   
+                "DEVICE_NAME" : "平衡车",
+                
+                "DEVICE_IP" : "BalanceCar_C3FDFF.local",
+
+                "FILTERS_ENABLED" : false,
+                
+                "FILTERS" : {
+                },
+                
+                "DICT_ENABLED" : false,
+
+                "DICT" : {
+                }
+            },
+            {
+                "DEVICE_NAME" : "电动牙刷",
+
+                "DEVICE_IP" : "192.168.6.1",
+
+                "FILTERS_ENABLED" : false,
+                
+                "FILTERS" : {
+                    "ALARM_ON" : true,
+                    "开关" : true,
+                    "重启" : true,
+                    "MORNING_ALARM" : true,
+                    "NIGHT_ALARM" : true,
+                    "TIME" : true
+                },
+                
+                "DICT_ENABLED" : false,
+                
+                "DICT" : {
+                    "ALARM_ON" : "闹钟开关",
+                    "MORNING_ALARM" : "早晨提醒时间",
+                    "NIGHT_ALARM" : "晚上提醒时间"
+                }
+            }
+        ];
+
+    </script>
+    <script src="ground_station.js"></script>
+</html>

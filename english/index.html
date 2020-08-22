@@ -61,12 +61,10 @@
         function createTable( parent )
         {
             var table = null;
-
+            
             function cellSelected( index, event) {
-                switch(event)
-                {
+                switch(event) {
                     case "end":
-                        cclog("will jump to:"+getHrefOfItem(index));
                         window.location.href = getHrefOfItem(index);
                         break;
                 }
@@ -136,11 +134,11 @@
         }
 
         var scene = CreateScene();
-
+        
         var layer = CCLayer.create();
         layer.setColor("#ffffff");
         layer.setBgOpacity(0.2);
-        layer.element.style.borderRadius = "30px";
+        layer.element.style.borderRadius = "15px";
         scene.addChild(layer);
         layer.layout = function( w, h) {
             this.setPosition( w/2, h/2);

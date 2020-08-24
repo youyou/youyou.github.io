@@ -165,14 +165,14 @@ function Dictionary()
         function setString( o, str){
             o.setString(str);
         }
-        titleLabel.runAction(RepeatForever(Sequence([FadeOut(1),
-                                                     CallFunc(setString,"［点击这里关注］"),
+        titleLabel.runAction(RepeatForever(Sequence([DelayTime(6),
+                                                     FadeOut(1),
+                                                     CallFunc( setString, "［点击这里关注］"),
                                                      FadeIn(1),
                                                      DelayTime(2),
                                                      FadeOut(1),
-                                                     CallFunc(setString,"英汉互译--学英语"),
-                                                     FadeIn(1),
-                                                     DelayTime(6)])));
+                                                     CallFunc( setString, "英汉互译--学英语"),
+                                                     FadeIn(1)])));
         
         createTipArrow();
         
@@ -203,28 +203,35 @@ function Dictionary()
         resultLayer.setContentSize(CCSizeMake(220, 300));
         resultLayer.setAnchorpoint( 0, 0);
         resultLayer.setPosition(50, 135);
-        bgLayer.addChild(resultLayer);
-
+        
         resultBgLayer = CCLayer.create();
         resultBgLayer.setContentSize(CCSizeMake(220, 300));
         resultBgLayer.setAnchorpoint( 0, 0);
-        resultBgLayer.setPosition(0, 0);
-        resultLayer.addChild(resultBgLayer);
+        resultBgLayer.setPosition(resultLayer.x, resultLayer.y);
         resultBgLayer.setColor(ccc3( 255, 255, 255));
         resultBgLayer.setOpacity(0.1);
         
+        bgLayer.addChild(resultBgLayer);
+        bgLayer.addChild(resultLayer);
+
         resultLabel = createLabelDefaultStyle( "", 0, 0);
         resultLayer.addChild(resultLabel);
         resultLabel.setVisible(true);
-        
+
+        resultLayer.element.setAttribute('class','scrollable-content');
+
         loadingLabel = createLabelDefaultStyle( "查询中...", 0, 0);
         resultLayer.addChild(loadingLabel);
         loadingLabel.setVisible(false);
         
-        tipTextLabel = createLabelDefaultStyle( "如果喜欢可以分享到朋友圈", 10, 245);
-        resultLayer.addChild(tipTextLabel);
+        tipTextLabel = createLabelDefaultStyle( "如果喜欢可以分享到朋友圈", 0, bgLayer.height);
+        bgLayer.addChild(tipTextLabel);
+        tipTextLabel.setContentSize(CCSizeMake(bgLayer.width, bgLayer.height - (resultLayer.height+resultLayer.y)));
+        tipTextLabel.setAnchorpoint( 0, 1);
+        tipTextLabel.setPosition(0, bgLayer.height);
+        tipTextLabel.setTextAlign("center");
         tipTextLabel.setVisible(false);
-        
+
         /* recording */
         if( ( typeof(wx) != 'undefined' ) || forceVoiceTranslateUIEnabled ) {
             

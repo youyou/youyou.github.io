@@ -155,11 +155,14 @@ function Dictionary()
         scene.setContentSize(CCSizeMake(w, h));
         scene.setPosition(w/2,h/2);
         scene.setTouchEnabled(true); // disable screen bounce effect
+        scene.setColor("#aa0000");
 
         bgLayer = CCLayer.create();
         bgLayer.setContentSize(CCSizeMake(320, 480));
         bgLayer.setAnchorpoint( 0, 0);
-        bgLayer.setPosition(0, 0);
+        bgLayer.setPosition( 0, 0);
+        //scene.addChild(bgLayer);
+        
         bgLayer.element.style.left = "50%";
         bgLayer.element.style.top = "50%";
         bgLayer.element.style.marginLeft = "-160";

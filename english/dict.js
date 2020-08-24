@@ -161,7 +161,9 @@ function Dictionary()
         bgLayer.setPosition(0, 0);
         scene.addChild(bgLayer);
         
-        titleLabel = createLabelDefaultStyle( "英汉互译--学英语", 95, 60);
+        var title = "英汉互译-学英语";
+        
+        titleLabel = createLabelDefaultStyle( title, 95, 60);
         scene.addChild(titleLabel);
         attachLink( titleLabel, SUBSCRIBE_LINK);
         
@@ -174,7 +176,7 @@ function Dictionary()
                                                      FadeIn(1),
                                                      DelayTime(2),
                                                      FadeOut(1),
-                                                     CallFunc( setString, "英汉互译--学英语"),
+                                                     CallFunc( setString, title),
                                                      FadeIn(1)])));
         
         createTipArrow();

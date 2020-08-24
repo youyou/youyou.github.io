@@ -321,7 +321,7 @@ function StartGame() {
     StartAnimation();
     // document.body.style.overflow='hidden';
     document.body.addEventListener('touchmove', function (e) {
-        //if(e.target === document.body)
+        if(e.target === document.body)
             e.preventDefault();
     }, {passive: false});
 }

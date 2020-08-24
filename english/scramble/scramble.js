@@ -698,7 +698,8 @@ function start()
     StartGame(null);
     StartAnimation(1/60);
     document.body.style.overflow='hidden';
-    document.body.addEventListener("touchmove",function(e){e.preventDefault();},false);
+    function mo(e){e.preventDefault();};
+    document.body.addEventListener("touchmove",mo,false);
 }
 
 setTimeout(start, 100);

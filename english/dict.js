@@ -156,7 +156,7 @@ function Dictionary()
         scene.setPosition(w/2,h/2);
         scene.setTouchEnabled(true); // disable screen bounce effect
         //scene.setColor("#aa0000");
-        
+
         bgLayer = CCLayer.create();
         bgLayer.setContentSize(CCSizeMake(320, 480));
         bgLayer.setAnchorpoint( 0, 0);
@@ -172,7 +172,7 @@ function Dictionary()
         bgLayer.addChild(bgLayerBg);
         bgLayerBg.setTouchEnabled(true);
         bgLayerBg.setColor(ccc3(46,138,189));
-        
+
         // bgLayerBg.touchBegin = function(x,y)
         // {
         //     var r = math.random(0,255);
@@ -208,36 +208,38 @@ function Dictionary()
         
         createTipArrow();
         
+        var contentWidth = 240;
+        var contentLeft  = (bgLayer.width - contentWidth)/2;
         /*query layer*/
         queryLayer = CCLayer.create();
-        queryLayer.setContentSize(CCSizeMake(220, 25));
+        queryLayer.setContentSize(CCSizeMake(contentWidth, 25));
         queryLayer.setAnchorpoint( 0, 0);
-        queryLayer.setPosition(50, 95);
+        queryLayer.setPosition(contentLeft, 95);
         bgLayer.addChild(queryLayer);
         
         queryLayerBg = CCLayer.create();
-        queryLayerBg.setContentSize(CCSizeMake(220, 25));
+        queryLayerBg.setContentSize(CCSizeMake(contentWidth, 25));
         queryLayerBg.setAnchorpoint( 0, 0);
         queryLayer.addChild(queryLayerBg);
         queryLayerBg.setColor(ccc3(255,255,255));
         queryLayerBg.setOpacity(0.1);
         
         queryLayerFg = CCLayer.create();
-        queryLayerFg.setContentSize(CCSizeMake(220, 25));
+        queryLayerFg.setContentSize(CCSizeMake(contentWidth, 25));
         queryLayerFg.setAnchorpoint( 0, 0);
         queryLayer.addChild(queryLayerFg);
         
-        queryLayerFg.element.innerHTML = "<input id='text' placeholder='' style='width:160px;height:25px;border:0;background:none transparent scroll repeat 0% 0%;color:#ffffff' onkeypress='if(event.keyCode==13) OnQuery();'></input><input style='width:60px;height:25px;font-size:14px;color:#ffffff;margin-top:-1px\9;padding:0;background-color:#5ac;border:0;' type='button' onclick='OnQuery()' value='翻译'></input>";
+        queryLayerFg.element.innerHTML = "<input id='text' placeholder='支持中英文单词短语或句子' style='width:"+(contentWidth-60)+"px;height:25px;border:0;background:none transparent scroll repeat 0% 0%;color:#ffffff' onkeypress='if(event.keyCode==13) OnQuery();'></input><input style='width:60px;height:25px;font-size:14px;color:#ffffff;margin-top:-1px\9;padding:0;background-color:#5ac;border:0;' type='button' onclick='OnQuery()' value='翻译'></input>";
         queryLayerFg.element.style.overflow="hidden";
         
         /*result layer*/
         resultLayer = CCLayer.create();
-        resultLayer.setContentSize(CCSizeMake(220, 300));
+        resultLayer.setContentSize(CCSizeMake(contentWidth, 300));
         resultLayer.setAnchorpoint( 0, 0);
-        resultLayer.setPosition(50, 135);
+        resultLayer.setPosition(contentLeft, 135);
         
         resultBgLayer = CCLayer.create();
-        resultBgLayer.setContentSize(CCSizeMake(220, 300));
+        resultBgLayer.setContentSize(CCSizeMake(contentWidth, 300));
         resultBgLayer.setAnchorpoint( 0, 0);
         resultBgLayer.setPosition(resultLayer.x, resultLayer.y);
         resultBgLayer.setColor(ccc3( 255, 255, 255));

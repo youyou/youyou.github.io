@@ -363,6 +363,11 @@ function Scramble(l) {
             D.setContentSize(CCSizeMake(320, 480));
             D.element.style.boxShadow = "0px 0px 20px #1f91b6";
             D.setVisible(false);
+            D.element.style.left = "50%";
+            D.element.style.top  = "50%";
+            D.element.style.marginLeft = "-160px";
+            D.element.style.marginTop  = "-240px";
+
             n = CCLayer.create();
             n.setContentSize(CCSizeMake(320, 480));
             n.setAnchorpoint(0, 0);
@@ -611,10 +616,21 @@ function createLoadingScene() {
     h.element.style.boxShadow = "0px 0px 20px #1f91b6";
     h.setColor(ccc3(47, 161, 198));
     h.setDepth(11);
-    var g = createLabelDefaultStyle("SCRAMBLE beta 1.0", 80, 100);
+    h.element.style.left = "50%";
+    h.element.style.top  = "50%";
+    h.element.style.marginLeft = "-160px";
+    h.element.style.marginTop  = "-240px";
+
+    var g = createLabelDefaultStyle("猜单词", 0, 60);
     h.addChild(g);
-    g.setColor(ccc3(55, 255, 55));
-    g.setAnchorpoint(0.5, 0.5);
+    g.setColor("#eeeeee");
+    g.setAnchorpoint(0, 0);
+    g.setContentSize(CCSizeMake(h.width, 60));
+    g.setPosition( 0, 60);
+    //g.setBgColor("#aa9999");
+    g.setTextAlign("center");
+    g.setFontSize(28);
+
     var c = createLabelDefaultStyle("0%", 156, 230);
     h.addChild(c);
     c.setColor(ccc3(255, 255, 255));
@@ -659,40 +675,29 @@ function createLoadingScene() {
         c.setString("" + parseInt(i) + "%")
     }
     h.updatePercent = a;
+
+    c.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() {
+        h.updatePercent(getLoadingPercentage());
+        if( isAllResourceReady() ) {
+            c.stopAllActions();
+            h.onFinishedLoading();
+        }
+    })])));
+
     return h
 }
+
 function StartGame(a) {
     scramble = Scramble(a);
     gLoadingScene = createLoadingScene();
     _loadingScene = gLoadingScene
 }
-function startAnimation() {
-    if (typeof (h5api) !== "undefined") {
-        h5api.initGame(100035984, "猜单词", 320, 480)
-    }
-    function a() {
-        processAction(1 / 60);
-        if (gLoadingScene) {
-            if (!isAllResourceReady()) {
-                gLoadingScene.updatePercent(getLoadingPercentage());
-                if (typeof (h5api) !== "undefined") {
-                    h5api.progress(parseInt(getLoadingPercentage()), "loading...")
-                }
-            } else {
-                gLoadingScene.onFinishedLoading();
-                gLoadingScene = null;
-                if (typeof (h5api) !== "undefined") {
-                    try {
-                        h5api.progress(100, "loading...")
-                    } catch (b) {}
-                }
-            }
-        }
-    }
-    CCDirector.sharedDirector().getScheduler().scheduleScriptFunc(a, 1 / 60, false)
+
+function start()
+{
+    StartGame(null);
+    StartAnimation(1/60);
+    document.addEventListener("touchmove",function(e){e.preventDefault();},false);
 }
-function start() {
-    startAnimation();
-    StartGame(null)
-}
-setTimeout(start, 1000);
+
+setTimeout(start, 100);

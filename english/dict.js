@@ -319,6 +319,7 @@ function Dictionary()
 function StartGame() {
     dictionary = Dictionary();
     StartAnimation();
+    document.addEventListener("touchmove",function(e){e.preventDefault();},false);
 }
 
 StartGame();

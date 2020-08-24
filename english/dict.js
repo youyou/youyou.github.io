@@ -148,13 +148,21 @@ function Dictionary()
     
     function init()
     {
-        scene = CCScene.create();
-        scene.setContentSize(CCSizeMake(320, 480));
-        scene.element.style.left = "50%";
-        scene.element.style.top = "50%";
-        scene.element.style.marginLeft = "-160";
-        scene.element.style.marginTop = "-240";
+        // scene = CCScene.create();
+        // scene.setContentSize(CCSizeMake(320, 480));
+        // scene.element.style.left = "50%";
+        // scene.element.style.top = "50%";
+        // scene.element.style.marginLeft = "-160";
+        // scene.element.style.marginTop = "-240";
         
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        
+        scene = CCScene.create();
+        scene.setContentSize(CCSizeMake(w, h));
+        scene.setPosition(w/2,h/2);
+        scene.setTouchEnabled(true);
+
         bgLayer = CCLayer.create();
         bgLayer.setContentSize(CCSizeMake(320, 480));
         bgLayer.setAnchorpoint( 0, 0);
@@ -319,11 +327,6 @@ function Dictionary()
 function StartGame() {
     dictionary = Dictionary();
     StartAnimation();
-    // document.body.style.overflow='hidden';
-    document.body.addEventListener('touchmove', function (e) {
-        if(e.target === document.body)
-            e.preventDefault();
-    }, {passive: false});
 }
 
 StartGame();

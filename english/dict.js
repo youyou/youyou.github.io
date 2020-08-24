@@ -150,8 +150,11 @@ function Dictionary()
     {
         scene = CCScene.create();
         scene.setContentSize(CCSizeMake(320, 480));
-        scene.setPosition(window.innerWidth/2,window.innerHeight/2);
-
+        scene.element.style.left = "50%";
+        scene.element.style.top = "50%";
+        scene.element.style.marginLeft = "-160";
+        scene.element.style.marginTop = "-240";
+        
         bgLayer = CCLayer.create();
         bgLayer.setContentSize(CCSizeMake(320, 480));
         bgLayer.setAnchorpoint( 0, 0);

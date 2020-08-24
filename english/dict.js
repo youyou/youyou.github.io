@@ -156,7 +156,7 @@ function Dictionary()
         scene.setPosition(w/2,h/2);
         scene.setTouchEnabled(true); // disable screen bounce effect
         //scene.setColor("#aa0000");
-
+        
         bgLayer = CCLayer.create();
         bgLayer.setContentSize(CCSizeMake(320, 480));
         bgLayer.setAnchorpoint( 0, 0);
@@ -172,19 +172,18 @@ function Dictionary()
         bgLayer.addChild(bgLayerBg);
         bgLayerBg.setTouchEnabled(true);
         bgLayerBg.setColor(ccc3(46,138,189));
-
-        bgLayerBg.touchBegin = function(x,y)
-        {
-            var r = math.random(0,255);
-            var g = math.random(0,255);
-            var b = math.random(0,255);
-            
-            var color = ccc3(r,g,b);
-            bgLayerBg.setColor(color);
-            tipTextLabel.setString( r + "," + g + "," + b + " " + color.toString() );
-            tipTextLabel.setVisible(true);
-        };
         
+        // bgLayerBg.touchBegin = function(x,y)
+        // {
+        //     var r = math.random(0,255);
+        //     var g = math.random(0,255);
+        //     var b = math.random(0,255);
+        //     var color = ccc3(r,g,b);
+        //     bgLayerBg.setColor(color);
+        //     tipTextLabel.setString( r + "," + g + "," + b + " " + color.toString() );
+        //     tipTextLabel.setVisible(true);
+        // };
+
         bgLayer.element.style.left = "50%";
         bgLayer.element.style.top = "50%";
         bgLayer.element.style.marginLeft = "-160";

@@ -320,7 +320,7 @@ function StartGame() {
     dictionary = Dictionary();
     StartAnimation();
     document.body.style.overflow='hidden';
-    document.addEventListener("touchmove",function(e){e.preventDefault();},false);
+    document.body.addEventListener("touchmove",function(e){e.preventDefault();},false);
 }
 
 StartGame();

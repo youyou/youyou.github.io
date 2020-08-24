@@ -319,10 +319,10 @@ function Dictionary()
 function StartGame() {
     dictionary = Dictionary();
     StartAnimation();
-    document.body.style.overflow='hidden';
-    document.body.addEventListener('touchmove', function (e) {
-      e.preventDefault();
-    }, {passive: false});
+    // document.body.style.overflow='hidden';
+    // document.body.addEventListener('touchmove', function (e) {
+    //   e.preventDefault();
+    // }, {passive: false});
 }
 
 StartGame();

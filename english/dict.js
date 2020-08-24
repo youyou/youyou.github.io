@@ -190,7 +190,7 @@ function Dictionary()
         bgLayer.element.style.marginTop = "-240";
 
         var title = "英汉互译-学英语";
-        titleLabel = createLabelDefaultStyle( title, 95, 60);
+        titleLabel = createLabelDefaultStyle( title, 95, 45);
         bgLayer.addChild(titleLabel);
         attachLink( titleLabel, SUBSCRIBE_LINK);
 

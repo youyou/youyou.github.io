@@ -171,9 +171,18 @@ function Dictionary()
         bgLayerBg.setColor("#00aa00");
         bgLayer.addChild(bgLayerBg);
         bgLayerBg.setTouchEnabled(true);
-        
-        bgLayerBg.touchBegin = function(x,y) {
-            bgLayerBg.setColor(ccc3(math.random(0,255),math.random(0,255),math.random(0,255)));
+        bgLayerBg.setColor(ccc3(46,138,189));
+
+        bgLayerBg.touchBegin = function(x,y)
+        {
+            var r = math.random(0,255);
+            var g = math.random(0,255);
+            var b = math.random(0,255);
+            
+            var color = ccc3(r,g,b);
+            bgLayerBg.setColor(color);
+            tipTextLabel.setString( r + "," + g + "," + b + " " + color.toString() );
+            tipTextLabel.setVisible(true);
         };
         
         bgLayer.element.style.left = "50%";
@@ -182,11 +191,10 @@ function Dictionary()
         bgLayer.element.style.marginTop = "-240";
 
         var title = "英汉互译-学英语";
-        
         titleLabel = createLabelDefaultStyle( title, 95, 60);
         bgLayer.addChild(titleLabel);
         attachLink( titleLabel, SUBSCRIBE_LINK);
-        
+
         function setString( o, str){
             o.setString(str);
         }

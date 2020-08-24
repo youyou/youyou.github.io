@@ -147,32 +147,28 @@ function Dictionary()
     }
     
     function init()
-    {
-        // scene = CCScene.create();
-        // scene.setContentSize(CCSizeMake(320, 480));
-        // scene.element.style.left = "50%";
-        // scene.element.style.top = "50%";
-        // scene.element.style.marginLeft = "-160";
-        // scene.element.style.marginTop = "-240";
-        
+    {        
         var w = window.innerWidth;
         var h = window.innerHeight;
-        
+
         scene = CCScene.create();
         scene.setContentSize(CCSizeMake(w, h));
         scene.setPosition(w/2,h/2);
-        scene.setTouchEnabled(true);
+        scene.setTouchEnabled(true); // disable screen bounce effect
 
         bgLayer = CCLayer.create();
         bgLayer.setContentSize(CCSizeMake(320, 480));
         bgLayer.setAnchorpoint( 0, 0);
         bgLayer.setPosition(0, 0);
-        scene.addChild(bgLayer);
-        
+        bgLayer.element.style.left = "50%";
+        bgLayer.element.style.top = "50%";
+        bgLayer.element.style.marginLeft = "-160";
+        bgLayer.element.style.marginTop = "-240";
+
         var title = "英汉互译-学英语";
         
         titleLabel = createLabelDefaultStyle( title, 95, 60);
-        scene.addChild(titleLabel);
+        bgLayer.addChild(titleLabel);
         attachLink( titleLabel, SUBSCRIBE_LINK);
         
         function setString( o, str){

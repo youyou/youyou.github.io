@@ -610,6 +610,73 @@ function Scramble(l) {
     a.loadCET6 = x;
     return a
 }
+
+function createProcessBar()
+{
+    var processLayer = CCLayer.create();
+
+    processLayer.__percent = 0;
+    processLayer.__width  = 80;
+    processLayer.__height = 16;
+
+    processLayer.__setContentSize = processLayer.setContentSize;
+    processLayer.__setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
+
+    var processLayerBg = CCLayer.create();
+    processLayer.addChild(processLayerBg);
+    processLayerBg.setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
+    processLayerBg.setColor("#ffffff");
+    processLayerBg.setOpacity(0.1);
+    processLayerBg.setAnchorpoint( 0, 0);
+    processLayerBg.setPosition( 0, 0);
+
+    var finishedLayer = CCLayer.create();
+    finishedLayer.setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
+    finishedLayer.setAnchorpoint( 0, 0);
+    finishedLayer.setPosition( 0, 0);
+    finishedLayer.setColor(ccc3(88,255,88));
+    finishedLayer.setOpacity(0.6);
+    processLayer.addChild(finishedLayer);
+    
+    processLayer.__percent = 0;
+    processLayer._w = 60;            
+
+    processLayer.setContentSize = function(size) {
+        
+        processLayer.__width  = size.width;
+        processLayer.__height = size.height;
+
+        processLayer.__setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
+        processLayerBg.setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
+        
+        processLayer.setProcess(processLayer.__percent);
+    }
+
+    processLayer.setProcess = function(percent) {
+                        
+        if(percent>100) { percent = 100; }
+        if(percent<0) { percent = 0;}
+        
+        finishedLayer.setContentSize(CCSizeMake( processLayer.__width*percent/100.0, processLayer.__height));
+        
+        processLayer.__percent = percent;
+    }
+    
+    processLayer.getProcess = function() {
+        return processLayer.__percent;
+    }
+
+    processLayer.destory = function () {
+        if( typeof(processLayer) !== 'undefined' ) {
+            processLayer.stopAllActions();
+            processLayer.removeFromParent();
+            processLayer = undefined;
+        }
+    }
+
+    return processLayer;
+}
+
 function createLoadingScene() {
     var h = CCScene.create();
     h.setContentSize(CCSizeMake(320, 480));
@@ -634,7 +701,18 @@ function createLoadingScene() {
     var c = createLabelDefaultStyle("0%", 156, 230);
     h.addChild(c);
     c.setColor(ccc3(255, 255, 255));
-    c.setAnchorpoint(0.5, 0.5);
+    c.setAnchorpoint(0, 0.5);
+    //c.setBgColor("#aa9999");
+    c.setContentSize(CCSizeMake(h.width, 60));
+    c.setPosition(0,230);
+    c.setTextAlign("center");
+
+    var process_bar = createProcessBar();
+    h.addChild(process_bar);
+    process_bar.setContentSize(CCSizeMake(200, 3));
+    process_bar.setAnchorpoint( 0.5, 0.5);
+    process_bar.setPosition(h.width/2,h.height/2);
+
     var f = createButton(function() {
         scramble.loadCET4();
         scramble.run();
@@ -665,6 +743,7 @@ function createLoadingScene() {
     function e() {
         f.setVisible(true);
         d.setVisible(true);
+        process_bar.setVisible(false);
         if (b != null) {
             b.setVisible(true)
         }
@@ -673,6 +752,7 @@ function createLoadingScene() {
     h.onFinishedLoading = e;
     function a(i) {
         c.setString("" + parseInt(i) + "%")
+        process_bar.setProcess(i);
     }
     h.updatePercent = a;
 

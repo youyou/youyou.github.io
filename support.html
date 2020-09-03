@@ -44,17 +44,13 @@
                     }
                 };
             }
-
+            scene.layout( w, h);
+            
             function resize() {
                 w = window.innerWidth;
                 h = window.innerHeight;
+                scene.layout( w, h);
             }
-
-            scene.runAction(RepeatForever(Sequence([ DelayTime(0.1), CallFunc(function(){
-                if( scene.width != w || scene.height != h ){
-                    scene.layout( w, h);
-                }
-            })])));
 
             window.addEventListener('resize', resize);
 

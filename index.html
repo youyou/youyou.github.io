@@ -1,3 +1,4 @@
+
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z1TLVT2BL"></script>
@@ -320,8 +321,8 @@
         console_layer.setPosition( 0, console_layer.showing ? (h-30)/2+30 : h);
     }
     console_layer.layout( scene.width, scene.height);
-
-    console_layer.element.innerHTML = "<textarea id='output'rows=8 style='overflow: scroll; -webkit-overflow-scrolling: touch;' ></textarea>";
+    
+    console_layer.element.innerHTML = "<textarea id='output'rows=8 style='overflow:scroll;' ></textarea>";
 
     var output = document.getElementById('output');
     console_layer.output = output;
@@ -771,6 +772,25 @@
     }
     file_view_title.layout( left_view.width, left_view.height);
 
+    if( Sys.mobileSafari )
+    {
+      var tip = CCLabel.create("使用电脑访问体验更佳");
+      scene.addChild(tip);
+      tip.setColor("#eeeeee");
+      tip.setBgColor("#0066cc");
+      //tip.setBgOpacity(0.2);
+      tip.setAnchorpoint( 1, 1);
+      tip.setDepth(20);
+      tip.setTextAlign("center");
+      tip.layout = function(w,h)
+      {
+        tip.setContentSize(CCSizeMake( w, 30));
+        tip.setPosition( w, h);
+      }
+      tip.layout(scene.width, scene.height);
+      tip.runAction(Sequence([ DelayTime(6), FadeOut(0.5), Remove()]));
+    }
+    
     </script>
     <script async type="text/javascript" src="ScriptEngine.js"></script>
 </body>

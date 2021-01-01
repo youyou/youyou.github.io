@@ -9,6 +9,7 @@ var s;
 
 Sys.isAndroid = false;
 Sys.isIOS = false;
+Sys.mobileSafari = false;
 
 if (ua.match(/android/)) {
     Sys.mobileSafari = true;

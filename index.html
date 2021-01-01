@@ -1,4 +1,3 @@
-
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z1TLVT2BL"></script>
@@ -22,27 +21,27 @@
   <script src="./ace/ace.js" type="text/javascript" charset="utf-8"></script>
   <style>
 
-      #editor {
-          margin: 0;
-          position: absolute;
-          top: 0%;
-          bottom: 0%;
-          left: 0%;
-          right: 0%;
-      }
+    #editor {
+        margin: 0;
+        position: absolute;
+        top: 0%;
+        bottom: 0%;
+        left: 0%;
+        right: 0%;
+    }
 
-      #output {
+    #output {
 
-          width: 100%;
-          height: 100%;
+        width: 100%;
+        height: 100%;
 
-          left: 0%;
-          right: 0%;
-          
-          color: white;
+        left: 0%;
+        right: 0%;
+        
+        color: white;
 
-          background-color: black;
-      }
+        background-color: black;
+    }
 
   </style>
 </head>
@@ -57,6 +56,8 @@
         var h = window.innerHeight;
 
         var scene = CCScene.create();
+        scene.element.style.overflow = "visible";
+
         scene.setContentSize(CCSizeMake(w, h));
         scene.setPosition( w/2, h/2);
         scene.setColor("0066cc");
@@ -65,10 +66,13 @@
 
         scene.element.setAttribute('class','scene');
 
+        scene.setAnchorpoint( 0, 0);
+        scene.setPosition( 0, 0);
+
         scene.layout = function ( w, h)
         {
           scene.setContentSize(CCSizeMake(w, h));
-          scene.setPosition( w/2, h/2);
+
           for (var i = 0; i < scene.childs.length; i++) {
               if( typeof(scene.childs[i].layout) === "function" ) {
                   scene.childs[i].layout( w, h);
@@ -93,7 +97,7 @@
 
     var scene = CreateScene();
 
-    var menu_bar_height = 30;
+    var menu_bar_height = 32;
 
     var menu_layer = CCLayer.create();
     scene.addChild(menu_layer);
@@ -118,9 +122,9 @@
       
       label.setContentSize(CCSizeMake( this.menu_item_width, menu_bar_height));
       label.setAnchorpoint(0,0);
-      label.setPosition( (this.menu_item_width + 1) * this.menu_items.length, 0);
+      label.setPosition( (this.menu_item_width + 1) * this.menu_items.length + menu_bar_height + 1, 0);
       label.setBgColor("#ffffff");
-      label.setColor("#ffffff");
+      label.setColor("#eeeeee");
       label.setBgOpacity(0.1);
       label.setTextAlign("center");
       label.setTouchEnabled(true);
@@ -160,6 +164,86 @@
 
       return item_id;
     }
+
+    var left_view_width = 320*0.618;
+
+    var left_view = CCLayer.create();
+    scene.addChild(left_view);
+
+    left_view.setAnchorpoint( 0, 0);
+    // left_view.setColor(ccc3( 35, 85, 135));
+    left_view.setColor(ccc3( 30, 30, 30));
+    left_view.layout = function( w, h)
+    {
+      left_view.setContentSize(CCSizeMake( left_view_width, h));
+      left_view.setPosition( -left_view_width, 0);
+    }
+    left_view.layout( scene.width, scene.height);
+
+    var close_mask_layer = CCLayer.create();
+    scene.addChild(close_mask_layer);
+
+    close_mask_layer.setAnchorpoint( 0, 0);
+    close_mask_layer.setPosition( 0, menu_bar_height-2);
+    //close_mask_layer.setColor("#ffffff");
+    //close_mask_layer.setBgOpacity(0.1);
+    close_mask_layer.setDepth(20);
+    close_mask_layer.setVisible(false);
+    close_mask_layer.layout = function( w, h)
+    {
+      close_mask_layer.setContentSize(CCSizeMake( w, h-menu_bar_height));
+    };
+    close_mask_layer.layout(scene.width, scene.height);
+    
+    function open_left_view()
+    {
+      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, left_view_width, 0)), CallFunc(function(){
+          scene.setPosition(left_view_width, 0);
+          close_mask_layer.setVisible(true);
+        })]) );
+    }
+
+    function close_left_view()
+    {
+      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, 0, 0) ), CallFunc(function(){
+        scene.setPosition( 0, 0);
+        close_mask_layer.setVisible(false);
+      })]) );
+    }
+
+    close_mask_layer.setTouchEnabled(true);
+    close_mask_layer.touchEnded = close_left_view;
+
+    var file_list_button = CCSprite.create("menu.png");
+    menu_layer.addChild(file_list_button);
+
+    file_list_button.setAnchorpoint( 0.5, 0.5);
+    file_list_button.setPosition( menu_bar_height/2, menu_bar_height/2);
+    file_list_button.setScale(0.5);
+    file_list_button.setColor("#ffffff");
+    file_list_button.setBgOpacity(0.1);
+    file_list_button.setTouchEnabled(true);
+
+    file_list_button.touchBegin = function()
+    {
+      this.setBgOpacity(0);
+    };
+
+    file_list_button.touchEnded = function( x, y)
+    {
+      if( scene.x === 0 ) {
+        open_left_view();
+      }
+      else if( Math.abs( parseInt(scene.x) - parseInt(left_view_width) ) < 5 ) {
+        close_left_view();
+      }
+      this.setBgOpacity(0.1);
+    };
+
+    file_list_button.touchCanceled = function( x, y)
+    {
+      this.setBgOpacity(0.1);
+    };
 
     menu_layer.addMenuItem( "新建", function(){
       new_file();
@@ -259,7 +343,7 @@
       cclog( x + "," + y);
       console_layer.output.scrollTop = console_layer.touchBeginScroll + (console_layer.touchBeginY - y);
     };
-
+    
     console_layer.setDepth(10);
 
     console_layer.show = function()
@@ -484,6 +568,8 @@
       localStorage.setItem( open_files[index], editor.getValue());
     }
 
+    var file_view = null;
+
     function create_new_file(file_name)
     {
       open_files.push(file_name);
@@ -508,6 +594,16 @@
       }
     }
 
+    //function delete_file(i)
+    //{
+      // remove content
+      //localStorage.setItem( open_files[index], editor.getValue());
+
+      // update index and content
+      //if( i <= index )
+      //  index -= 1;
+    //}
+
     function switch_file( source, i, title)
     {
       editor.setValue(source);
@@ -530,6 +626,9 @@
 
       var next_button = menu_layer.getMenuItem(next_button_index);
       next_button.setDisabled(index + 1 >= open_files.length);
+
+      if( file_view )
+        file_view.reload();
     }
 
     function load(i)
@@ -552,9 +651,125 @@
           switch_file( source || "", i, open_files[i]);
         }
       }
+      else
+      {
+        editor.setValue("");
+      }
     }
 
     load(index);
+
+    function update_cell( view, row)
+    {
+        var cell = view.getCell("cell");
+
+        if( typeof(cell.label) === "undefined" )
+        {
+          cell.setColor("#ffffff");
+
+          var label = CCLabel.create("test!");
+          cell.addChild(label);
+          cell.label = label;
+
+          label.padding = 20;
+          label.setAnchorpoint( 0, 0);
+          label.setPosition( label.padding, 0);
+          label.setColor("#eeeeee");
+          label.setFontSize(13);
+          label.layout = function( w, h)
+          {
+            this.setContentSize(CCSizeMake( w - label.padding*2, h));
+          }
+          label.layout( cell.width, cell.height);
+
+          label.element.style["font-family"] = "Helvetical";
+        }
+
+        cell.label.setString(view.dataSource[row]);
+
+        if(  row === index )
+        {
+          cell.setBgOpacity(0.1);
+        }
+        else
+        {
+          cell.setBgOpacity(0);
+        }
+
+        return cell;
+    }
+
+    function cell_event( row, event )
+    {
+      if( event == "delete" )
+      {
+        // remove data
+        localStorage.removeItem(file_view.dataSource[row]);
+
+        // update index
+        if( row <= index )
+          index -= 1;
+
+        if( index < 0 && (file_view.dataSource.length - 1) > 0 )
+          index = 0;
+      }
+      else if( event == "deleted" )
+      {
+        localStorage.setItem("open_files", JSON.stringify(open_files));
+        load(index);
+      }
+      else if( event ==  "end" )
+      {
+        if( row != index )
+          load(row);
+      }
+    }
+
+    file_view = create_table_view(CCSizeMake( left_view.width, left_view.height), menu_layer.height, 1, 0, update_cell, cell_event);
+
+    left_view.addChild(file_view);
+    file_view.setDataSource(open_files);
+
+    file_view.padding = 0;
+    file_view.setAnchorpoint( 0, 0);
+    file_view.setPosition( file_view.padding, menu_layer.height);
+    //file_view.setColor("#0066cc");
+
+    file_view.layout = function( w, h)
+    {
+      this.setContentSize(CCSizeMake( w-file_view.padding*2, h - menu_layer.height));
+    };
+    file_view.layout( left_view.width, left_view.height);
+
+    file_view.should_delete_cell = function(row)
+    {
+      var file_name = file_view.dataSource[row];
+
+      var yes = confirm( "是否要删除文件'" + file_name + "'?" );
+      if( yes )
+        return true
+
+      return false;
+    }
+
+    var file_view_title = CCLabel.create("文件列表");
+    left_view.addChild(file_view_title);
+
+    //file_view_title.setTextAlign("center");
+    //file_view_title.setBgColor("#ffffff");
+    //file_view_title.setBgOpacity(0.05);
+    //file_view_title.setColor("#eeeeee");
+
+    file_view_title.padding = 20;
+    file_view_title.setAnchorpoint( 0, 0);
+    file_view_title.setPosition( file_view_title.padding, 0);
+    file_view_title.setColor("#eeeeee");
+    file_view_title.setFontSize(15);
+    file_view_title.layout = function( w, h)
+    {
+      this.setContentSize(CCSizeMake( w - this.padding*2, menu_layer.height));
+    }
+    file_view_title.layout( left_view.width, left_view.height);
 
     </script>
     <script async type="text/javascript" src="ScriptEngine.js"></script>

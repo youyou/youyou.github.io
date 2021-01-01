@@ -805,7 +805,7 @@ function CCScene_instance(parent_instance) {
         SetContentSize(parent_instance, size);
 
         // if (!Sys.isIOS && !Sys.isAndroid) {
-        parent_instance.element.style.overflow = "hidden";
+        parent_instance.element.style.overflow = "visible";
         //     parent_instance.element.style.marginLeft = "-" + (size.width / 2) + "px";
         //     parent_instance.element.style.marginTop = "-" + (size.height / 2) + "px";
         //     parent_instance.element.style.left = "50%";
@@ -815,6 +815,11 @@ function CCScene_instance(parent_instance) {
 
     parent_instance.setContentSize = SetSize;
     parent_instance.setContentSize(CCSizeMake(480, 320));
+
+    parent_instance.setDisplayOverflow = function(bShow)
+    {
+        this.element.style.overflow = bShow ? "visible" : "hidden";
+    };
 
     return parent_instance;
 }
@@ -2757,46 +2762,72 @@ function StartAnimation(dt) {
     }
 }
 
-function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRowFunc, cellSelectFunc) {
-
+function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRowFunc, cellEventFunc) {
+    
     var tableView = CCLayer.create();
     tableView.setContentSize(size);
     tableView.visibleCells = new Array();
     tableView.cellsWaitingReuse = new Array();
     tableView.element.style.overflow = "hidden";
+    tableView.auto_delete_cell = true;
+    tableView.dataSource = null;
+    tableView.y_offset = 0;
+
+    tableView.should_delete_cell = function(index)
+    {
+        return tableView.auto_delete_cell;
+    };
 
     var numRows = 0;
 
-    tableView.setNumRows = function (_numRows) {
+    tableView.setNumRows = function (_numRows)
+    {    
         numRows = _numRows;
-
-        tableView.y_offset = 0;
-
-        var low_boundary = size.height - _numRows * (cellHeight + gap);
+        
+        var low_boundary = tableView.height - _numRows * (cellHeight + gap);
         tableView.y_offset_range_low_boundary = low_boundary > 0 ? 0 : low_boundary;
         tableView.y_offset_range_high_boundary = 0;
+
+        if( tableView.y_offset > tableView.y_offset_range_high_boundary)
+            tableView.y_offset = tableView.y_offset_range_high_boundary;
+        
+        if( tableView.y_offset < tableView.y_offset_range_low_boundary)
+            tableView.y_offset = tableView.y_offset_range_low_boundary;
     }
 
-    tableView.getNumRows = function () {
+    tableView.getNumRows = function ()
+    {
         return numRows;
     }
-
-    if (typeof (dataSourceOrNumRows) === "number") {
+    
+    if (typeof (dataSourceOrNumRows) === "number")
+    {
         tableView.setNumRows(dataSourceOrNumRows);
-    } else {
+    }
+    else
+    {
         tableView.dataSource = dataSourceOrNumRows;
         tableView.setNumRows(dataSourceOrNumRows.length);
     }
-
+    
     tableView.getCell = function (reuseKey) {
-        if (tableView.cellsWaitingReuse.length > 0) {
+        
+        if (tableView.cellsWaitingReuse.length > 0)
+        {
             var reuseCell = tableView.cellsWaitingReuse.shift();
+            reuseCell.layout( tableView.width, tableView.height);
             return reuseCell;
-        } else {
+        }
+        else
+        {
             var cell = CCLayer.create();
-            cell.setContentSize(CCSizeMake(size.width, cellHeight));
             cell.setAnchorpoint(0, 0);
             cell.setTouchEnabled(true);
+            cell.layout = function( w, h)
+            {
+                cell.setContentSize(CCSizeMake( w, cellHeight));
+            }
+            cell.layout( tableView.width, tableView.height);
             cell.focuse = null;
             cell.unfocus = null;
             return cell;
@@ -2808,11 +2839,11 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
         return y;
     }
 
-    function isVisibleCell(i) {
-
+    function isVisibleCell(i)
+    {
         var y = cellY(i);
 
-        if (y > size.height || (y + cellHeight + gap) < 0) {
+        if (y > tableView.height || (y + cellHeight + gap) < 0) {
             return false;
         }
 
@@ -2868,7 +2899,10 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
 
     tableView.setOffset = SetOffset;
 
-    tableView.reload = function () {
+    tableView.reload = function ()
+    {
+        if( tableView.dataSource )
+            tableView.setNumRows(tableView.dataSource.length);
 
         // hide all visible cells
         for (var i = tableView.visibleCells.length - 1; i >= 0; i--) {
@@ -2882,51 +2916,143 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
         updateVisibleCells();
     }
 
-    tableView.setDataSource = function (dataSource) {
+    var deleting_cell = null;
+    
+    tableView.deleteCell = function(cell)
+    {        
+        var moveOut = MoveTo( 0.2, -cell.width, cellY(cell.__index));
+        
+        function deleteDataAndReload()
+        {
+            if( tableView.dataSource )
+            {
+                var indexToDelete = cell.__index;
+
+                cellEventFunc( indexToDelete, "delete");
+                
+                tableView.dataSource.splice( indexToDelete, 1);
+                tableView.reload();
+
+                for (var i = tableView.visibleCells.length - 1; i >= 0; i--)
+                {
+                    if( tableView.visibleCells[i].__index >= indexToDelete )
+                    {
+                        var thecell = tableView.visibleCells[i];
+                        thecell.setPosition( 0, cellY(thecell.__index+1) );
+                        thecell.runAction( MoveTo( 0.1, 0, cellY(thecell.__index) ) );
+                    }
+                }
+                
+                tableView.runAction(Sequence([ DelayTime(0.11), CallFunc(function()
+                    {
+                        cellEventFunc( -1, "deleted");
+                    })]));
+            }
+
+            deleting_cell = null;
+        }
+
+        var action = Sequence([ moveOut, CallFunc(deleteDataAndReload)]);
+        cell.runAction(action);
+    }
+
+    tableView.insert_front = function(data)
+    {
+        if( tableView.dataSource )
+        {
+            tableView.dataSource.unshift(data);
+            tableView.reload();
+            tableView.setOffset( -cellHeight - gap);
+            
+            tableView.runAction(Ease(ease.bounce, ChangeValue(0.5, tableView.y_offset, -tableView.y_offset, function (v) {
+                tableView.setOffset(v);
+            })));
+        }
+    }
+
+    tableView.setDataSource = function (dataSource)
+    {
         tableView.dataSource = dataSource;
-        tableView.setNumRows(dataSource.length);
+        tableView.y_offset = 0;
         tableView.reload();
     }
 
-    function focusCell(index) {
-        if (index < 0) return;
+    function getCellOfIndex(index)
+    {
+        if (index < 0) return null;
         for (var i = 0; i < tableView.visibleCells.length; i++) {
             var thecell = tableView.visibleCells[i];
             if (thecell.__index == index) {
-                if (thecell.focuse) thecell.focuse();
+                return thecell;
             }
+        }
+        return null;
+    }
+
+    tableView.getCellAtRow = getCellOfIndex;
+    
+    function focusCell(index) {
+        var cell = getCellOfIndex(index);
+        if( cell && cell.focus )
+        {
+            cell.focus();
+        }
+        else
+        {
+            cellEventFunc( index, "focus");
         }
     }
 
     function unfocusCell(index) {
-        if (index < 0) return;
-        for (var i = 0; i < tableView.visibleCells.length; i++) {
-            var thecell = tableView.visibleCells[i];
-            if (thecell.__index == index) {
-                if (thecell.unfocuse) thecell.unfocuse();
-            }
+        var cell = getCellOfIndex(index);
+        if(cell && cell.unfocus )
+        {
+            cell.unfocus();
         }
+        else
+        {
+            cellEventFunc( index, "unfocus");
+        }
+    }
+
+    function getCellAtPos(y)
+    {
+        var cellIndex = Math.floor((y - tableView.y_offset) / (cellHeight + gap));
+        return getCellOfIndex(cellIndex);
     }
 
     tableView.setTouchEnabled(true);
 
     var v = 0;
+    var last_x = 0;
     var last_y = 0;
+    var begin_x = 0;
+    var begin_y = 0;
     var focusedIndex = -1;
+    var maybe_delete_action = true;
 
     tableView.touchBegin = function (x, y) {
 
         tableView.stopAllActions();
 
+        last_x = x;
         last_y = y;
+        maybe_delete_action = true;
+        begin_x = x;
+        begin_y = y;
+        deleting_cell = null;
+        v = 0;
+        focusedIndex = -1;
 
         var cellIndex = Math.floor((y - tableView.y_offset) / (cellHeight + gap));
 
-        if (cellIndex >= numRows) {
+        if (cellIndex >= numRows)
+        {
             cellIndex = -1;
         }
-        else {
-            cellSelectFunc(cellIndex, "begin");
+        else
+        {
+            cellEventFunc( cellIndex, "begin");
             focusedIndex = cellIndex;
             focusCell(focusedIndex);
         }
@@ -2934,8 +3060,45 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
 
     tableView.touchMoved = function (x, y) {
 
+        var dx = x - last_x;
         var dy = y - last_y;
 
+        /***** process cell delete action *****/
+        var touch_offset_x = x - begin_x;
+        var touch_offset_y = y - begin_y;
+
+        if( maybe_delete_action )
+        {
+            if( !(  touch_offset_x <= 0 && Math.abs(touch_offset_y) < 5 ) )
+            {
+                maybe_delete_action = false;
+            }
+        }
+
+        var is_delete_action = ( maybe_delete_action && touch_offset_x < -10 ) || deleting_cell;
+        if( is_delete_action )
+        {
+            var new_deleting_cell = getCellAtPos(y);
+
+            if( new_deleting_cell )
+            {
+                if( !deleting_cell || new_deleting_cell == deleting_cell )
+                {
+                    deleting_cell = new_deleting_cell;
+                    var cell_pos_y = cellY(deleting_cell.__index);
+                    deleting_cell.setPosition( touch_offset_x, cell_pos_y);
+                }
+                else
+                {
+                    var cell_pos_y = cellY(deleting_cell.__index);
+                    deleting_cell.setPosition( 0, cell_pos_y);
+                    deleting_cell = null;
+                    maybe_delete_action = false;
+                }
+            }
+        }
+        /***** end process delete action *****/
+        
         v = dy;
 
         var bounce = 0;
@@ -2946,9 +3109,11 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
         else if (tableView.y_offset > tableView.y_offset_range_high_boundary) {
             bounce = tableView.y_offset_range_high_boundary - tableView.y_offset;
         }
-
-        tableView.setOffset(tableView.y_offset + (bounce == 0 ? dy : dy * 0.5));
-
+        
+        if(!deleting_cell)
+            tableView.setOffset(tableView.y_offset + (bounce == 0 ? dy : dy * 0.5));
+        
+        last_x = x;
         last_y = y;
 
         unfocusCell(focusedIndex);
@@ -2968,7 +3133,7 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
             bounce = tableView.y_offset_range_high_boundary - tableView.y_offset;
         }
 
-        if (Math.abs(bounce) > 0.5) {
+        if ( deleting_cell == null && Math.abs(bounce) > 0.5 ) {
             tableView.runAction(Ease(ease.bounce, ChangeValue(0.5, tableView.y_offset, bounce, function (v) {
                 tableView.setOffset(v);
             })));
@@ -2980,39 +3145,56 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
 
     tableView.touchEnded = function (x, y) {
 
-        if (!BounceBack()) {
+        if (!BounceBack())
+        {
             tableView.stopAllActions();
 
             var lastValue = tableView.y_offset;
             var dy = 0;
 
             // 惯性运动
-            tableView.runAction(Ease(ease.easeOutQuad, ChangeValue(Math.abs(v) / 10, tableView.y_offset, v * 100, function (v) {
+            if(!deleting_cell)
+            {
+                tableView.runAction(Ease(ease.easeOutQuad, ChangeValue(Math.abs(v) / 10, tableView.y_offset, v * 100, function (v) {
 
-                dy = v - lastValue;
-                tableView.setOffset(v);
+                    dy = v - lastValue;
+                    tableView.setOffset(v);
 
-                if (tableView.y_offset < tableView.y_offset_range_low_boundary
-                    || tableView.y_offset > tableView.y_offset_range_high_boundary) {
+                    if (tableView.y_offset < tableView.y_offset_range_low_boundary
+                        || tableView.y_offset > tableView.y_offset_range_high_boundary) {
 
-                    tableView.stopAllActions();
+                        tableView.stopAllActions();
 
-                    // 阻尼运动
-                    // var stop = Ease( ease.easeOutQuad, ChangeValue( Math.abs(dy)/300, tableView.y_offset, dy*2, function(v) {
-                    //     tableView.setOffset(v);
-                    // }));
-                    // tableView.runAction(Sequence([stop, CallFunc( function(){
-                    BounceBack();
-                    //}, null)]));
-                }
+                        // 阻尼运动
+                        // var stop = Ease( ease.easeOutQuad, ChangeValue( Math.abs(dy)/300, tableView.y_offset, dy*2, function(v) {
+                        //     tableView.setOffset(v);
+                        // }));
+                        // tableView.runAction(Sequence([stop, CallFunc( function(){
+                        BounceBack();
+                        //}, null)]));
+                    }
 
-            })));
-
+                })));
+            }
+            else
+            {
+                dy = 0;
+                v = 0;
+            }
         }
 
         var cellIndex = Math.floor((y - tableView.y_offset) / (cellHeight + gap));
         if (cellIndex == focusedIndex && (cellIndex >= 0))
-            cellSelectFunc(cellIndex, "end");
+            cellEventFunc(cellIndex, "end");
+
+        if( deleting_cell )
+        {
+            if(  Math.abs(x - begin_x) > deleting_cell.width/2
+                && tableView.should_delete_cell && tableView.should_delete_cell(deleting_cell.__index) )
+                tableView.deleteCell(deleting_cell);
+            else
+                deleting_cell.setPosition( 0, cellY(deleting_cell.__index));
+        }
 
         unfocusCell(focusedIndex);
         focusedIndex = -1;
@@ -3032,10 +3214,16 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
             bounce = tableView.y_offset_range_high_boundary - tableView.y_offset;
         }
 
-        if (Math.abs(bounce) > 0.5) {
+        if ( deleting_cell == null && Math.abs(bounce) > 0.5) {
             tableView.runAction(Ease(ease.bounce, ChangeValue(0.5, tableView.y_offset, bounce, function (v) {
                 tableView.setOffset(v);
             })));
+        }
+
+        if( deleting_cell )
+        {
+            deleting_cell.setPosition( 0, cellY(deleting_cell.__index));
+            cclog("deleting_cell 3");
         }
 
         unfocusCell(focusedIndex);

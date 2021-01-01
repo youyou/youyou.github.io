@@ -44,16 +44,21 @@ function math_instance() {
 var math = new math_instance();
 
 /** begin cocos2dx adapter **/
-function cclog(str) {
-    if ( !IS_IE ) {
+
+function cclog(str)
+{
+    if ( !IS_IE )
+    {
         console.log(str);
     }
 }
 
-function assert( condition, str) {
+function assert( condition, str)
+{
     if( !condition ) {
-        cclog(str);
-        alert("ASSERT FAILED: " + str);
+        var info = "ASSERT FAILED: " + str;
+        cclog(info);
+        alert(info);
     }
 }
 
@@ -414,7 +419,7 @@ function GetIdleTime() {
 
 var ANY_TOUCH_LISTENERS = [];
 
-function AddAnyTouchListener( anyTouchListener ) {
+function AddAnyTouchListener(anyTouchListener) {
     ANY_TOUCH_LISTENERS.push(anyTouchListener);
 }
 
@@ -914,7 +919,6 @@ function CCSpriteFromFrame_instance( parent_instance, texture, frame) {
 }
 //CCSpriteFromFrame_instance.prototype = new CCNode_instance();
 
-
 var spriteFrameCatche = new Array();
 
 function parseRect( rectDef, obj ) {
@@ -1053,6 +1057,7 @@ function CCSprite_index() {
         }
     }
 }
+
 var CCSprite = new CCSprite_index();
     
 function getWinSize() {

@@ -116,7 +116,12 @@
     </style>
   </head>
   <body>
-
+    
+    <button onclick="execute();" style="margin-top:1px;">运行</button>
+    <button onclick="fullScreenEdit();" style="margin-top:1px;">全屏</button>
+    <button onclick="previous();" id="previous" style="margin-top:1px;">上一页</button>
+    <button onclick="next();" id="next" style="margin-top:1px;">下一页</button>
+    
     <div class="" display="none">
       <progress value="0" max="100" id="progress" hidden=1></progress>
     </div>
@@ -125,11 +130,6 @@
       <div class="spinner" id='spinner'></div>
       <div class="emscripten" id="status" >Downloading...</div>
     </canvas>
-
-    <button onclick="execute();" style="margin-top:1px;">运行</button>
-    <button onclick="fullScreenEdit();" style="margin-top:1px;">全屏</button>
-    <button onclick="previous();" id="previous" style="margin-top:1px;">上一页</button>
-    <button onclick="next();" id="next" style="margin-top:1px;">下一页</button>
 
     <textarea id="output" rows="8" readonly></textarea>
 

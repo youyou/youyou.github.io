@@ -1,0 +1,78 @@
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'">
+
+  <meta name="viewport" content="width=320 user-scalable=no"/>
+  <meta name="x5-orientation" content="portrait"/>
+  <meta name="x5-fullscreen" content="true" />
+  <meta name="x5-page-mode" content="app" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <link rel="apple-touch-startup-image" href="start.png" media="(device-height:1334px)" />
+  <link rel="apple-touch-icon" href="icon.png"/>
+
+  <title>IM</title>
+  <script src="/lib/cocos2d-adapter.js"></script>
+  <script src="/lib/cocos2d-components.js"></script>
+  <script src="/lib/crypto-js.min.js"></script>
+  <script src="chats_layer.js"></script>
+  <script src="contacts_layer.js"></script>
+  <script src="my_layer.js"></script>
+  <script src="chat_layer.js"></script>
+
+<body ondragstart="return false;"  ondrop="return false;" class="scene" style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" onload="body_load();">
+
+<script>
+
+  var scene = CreateScene();
+
+  scene.setColor("#0066bb");
+
+  var tab_view = CreateTabView(scene);
+
+  var tab_bar = tab_view.tab_bar;
+
+  tab_bar.setBgOpacity(0.1);
+
+  var chats_layer = tab_bar.createTab( "asset/img/menu.png", "聊天");
+
+  var contacts_layer = tab_bar.createTab( "asset/img/menu.png", "通讯录");
+
+  var my_layer = tab_bar.createTab( "asset/img/menu.png", "我");
+
+  tab_bar.selectTab(0);
+
+  setup_chats_layer(chats_layer);
+
+  setup_contacts_layer(contacts_layer);
+
+  setup_my_layer(my_layer);
+
+  SetRootView(tab_view);
+
+  StartAnimation(1/60.0);
+
+  function body_load()
+  {
+    alert("body loaded!");
+
+    function perventDefault(e)
+    {      
+      if (e && typeof (e.preventDefault) !== 'undefined')
+      {
+        e.preventDefault();
+
+        //alert("prevented:"+e);
+      }
+    }
+
+    document.body.addEventListener("touchstart", perventDefault, false);
+    document.body.addEventListener("touchmove", perventDefault, false);
+    document.body.addEventListener("touchend", perventDefault, false);
+    document.body.addEventListener("touchcancel", perventDefault, false);
+  };
+
+</script>
+</body>
+</html>

@@ -1,0 +1,943 @@
+<head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z1TLVT2BL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6Z1TLVT2BL');
+  </script>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=320 user-scalable=no"/>
+  <meta name="x5-orientation" content="portrait"/>
+  <meta name="x5-fullscreen" content="true" />
+  <meta name="x5-page-mode" content="app" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'">
+  <title>script engine web demo</title>
+  <script src="/lib/cocos2d-adapter.js"></script>
+  <script src="/lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+  <style>
+
+    #editor {
+        margin: 0;
+        position: absolute;
+        top: 0%;
+        bottom: 0%;
+        left: 0%;
+        right: 0%;
+    }
+
+    #output {
+        
+        width: 100%;
+        height: 100%;
+
+        left: 0%;
+        right: 0%;
+        
+        color: white;
+        
+        background-color: black;
+    }
+
+  </style>
+</head>
+<body ondragstar="return false;" ondrop="return false;" style="position:fixed; width:100%; height:100%; padding: 0px; margin: 0px; -moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;">
+<script>
+
+    var editor = null;
+
+    function CreateScene() {
+        
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+
+        var scene = CCScene.create();
+        scene.element.style.overflow = "visible";
+
+        scene.setContentSize(CCSizeMake(w, h));
+        scene.setPosition( w/2, h/2);
+        scene.setColor("000000");
+        scene.setTouchEnabled(true);
+        //scene.setVisible(false);
+
+        scene.element.setAttribute('class','scene');
+
+        scene.setAnchorpoint( 0, 0);
+        scene.setPosition( 0, 0);
+
+        scene.layout = function ( w, h)
+        {
+          scene.setContentSize(CCSizeMake(w, h));
+
+          for (var i = 0; i < scene.childs.length; i++) {
+              if( typeof(scene.childs[i].layout) === "function" ) {
+                  scene.childs[i].layout( w, h);
+              }
+          };
+        }
+
+        function resize() {
+            scene.layout( window.innerWidth, window.innerHeight);
+        }
+
+        window.addEventListener('resize', resize);
+
+        function on_orintation_change(orintation) 
+        {
+          scene.layout( window.innerWidth, window.innerHeight);
+        }
+        SetOrintationLisener(on_orintation_change);
+
+        return scene;
+    }
+
+    var scene = CreateScene();
+
+    var menu_bar_height = 32;
+
+    var menu_layer = CCLayer.create();
+    scene.addChild(menu_layer);
+    menu_layer.setColor("#333333");
+    menu_layer.setAnchorpoint(0,0);
+    menu_layer.layout = function( w, h)
+    {
+        menu_layer.setContentSize(CCSizeMake( w, menu_bar_height));
+        menu_layer.setPosition( 0, 0);
+    }
+    menu_layer.layout( scene.width, scene.height);
+
+    //menu_layer.num_menu_items = 0;
+    menu_layer.menu_items = [];
+    menu_layer.menu_item_width = 50;
+
+    menu_layer.addMenuItem = function( title, callback)
+    {
+      var label = CCLabel.create(title);
+
+      menu_layer.addChild(label);
+      
+      label.setContentSize(CCSizeMake( this.menu_item_width, menu_bar_height));
+      label.setAnchorpoint(0,0);
+      label.setPosition( (this.menu_item_width + 1) * this.menu_items.length + menu_bar_height + 1, 0);
+      label.setBgColor("#ffffff");
+      label.setColor("#eeeeee");
+      label.setBgOpacity(0.1);
+      label.setTextAlign("center");
+      label.setTouchEnabled(true);
+
+      label.disabled = false;
+
+      label.touchBegin = function()
+      {
+        this.setOpacity(0.5);
+      };
+
+      label.touchEnded = function( x, y)
+      {
+        if(!this.disabled)
+        {
+          this.setOpacity(1);
+          callback();
+        }
+      };
+
+      label.touchCanceled = function( x, y)
+      {
+        if(!this.disabled)
+        {
+          this.setOpacity(1);      
+        }
+      };
+
+      label.setDisabled = function(disabled)
+      {        
+        this.disabled = disabled;
+        this.setOpacity(this.disabled ? 0.5 : 1);
+      }
+
+      var item_id = menu_layer.menu_items.length;
+      menu_layer.menu_items.push(label);
+
+      label.simulate_touch = function()
+      {
+        this.runAction(Sequence([CallFunc(function(){
+          label.touchBegin(0,0);
+        }),DelayTime(0.1), CallFunc(function(){
+          label.touchEnded(0,0);
+        })]));
+      }
+
+      return item_id;
+    }
+
+    var left_view_width = 320*0.618;
+
+    var left_view = CCLayer.create();
+    scene.addChild(left_view);
+
+    left_view.setAnchorpoint( 0, 0);
+    // left_view.setColor(ccc3( 35, 85, 135));
+    left_view.setColor(ccc3( 30, 30, 30));
+    left_view.layout = function( w, h)
+    {
+      left_view.setContentSize(CCSizeMake( left_view_width, h));
+      left_view.setPosition( -left_view_width, 0);
+    }
+    left_view.layout( scene.width, scene.height);
+
+    var close_mask_layer = null;
+
+    if( Sys.mobileSafari )
+    {
+      close_mask_layer = CCLayer.create();
+      scene.addChild(close_mask_layer);
+      close_mask_layer.setAnchorpoint( 0, 0);
+      close_mask_layer.setPosition( 0, menu_bar_height-2);
+      //close_mask_layer.setColor("#ffffff");
+      //close_mask_layer.setBgOpacity(0.1);
+      close_mask_layer.setDepth(20);
+      close_mask_layer.setVisible(false);
+      close_mask_layer.layout = function( w, h)
+      {
+        close_mask_layer.setContentSize(CCSizeMake( w, h-menu_bar_height));
+      };
+      close_mask_layer.layout(scene.width, scene.height);
+
+      close_mask_layer.setTouchEnabled(true);
+      close_mask_layer.touchEnded = close_left_view;
+    }
+
+    function open_left_view()
+    {
+      target_scene_x = left_view_width;
+
+      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, target_scene_x, 0)), CallFunc(function()
+        {
+          scene.setPosition(left_view_width, 0);
+
+          if(close_mask_layer)
+            close_mask_layer.setVisible(true);
+
+          console_layer.layout( scene.width, scene.height);
+          editor_layer.layout( scene.width, scene.height);
+
+        })]) );
+    }
+
+    function close_left_view()
+    {
+      target_scene_x = 0;
+
+      console_layer.layout( scene.width, scene.height);
+      editor_layer.layout( scene.width, scene.height);
+
+      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, target_scene_x, 0) ), CallFunc(function(){
+        
+        scene.setPosition( 0, 0);
+
+        if(close_mask_layer)
+          close_mask_layer.setVisible(false);
+
+      })]) );
+    }
+
+    var file_list_button = CCSprite.create("menu.png");
+    menu_layer.addChild(file_list_button);
+
+    file_list_button.setAnchorpoint( 0.5, 0.5);
+    file_list_button.setPosition( menu_bar_height/2, menu_bar_height/2);
+    file_list_button.setScale(0.5);
+    file_list_button.setColor("#ffffff");
+    file_list_button.setBgOpacity(0.1);
+    file_list_button.setTouchEnabled(true);
+
+    file_list_button.touchBegin = function()
+    {
+      this.setBgOpacity(0);
+    };
+
+    file_list_button.touchEnded = function( x, y)
+    {
+      if( scene.x === 0 ) {
+        open_left_view();
+      }
+      else if( Math.abs( parseInt(scene.x) - parseInt(left_view_width) ) < 5 ) {
+        close_left_view();
+      }
+      this.setBgOpacity(0.1);
+    };
+
+    file_list_button.touchCanceled = function( x, y)
+    {
+      this.setBgOpacity(0.1);
+    };
+
+    menu_layer.addMenuItem( "新建", function(){
+      new_file();
+    });
+
+    var execute_button_index = menu_layer.addMenuItem( "运行", function(){
+      execute();
+    });
+
+    // menu_layer.addMenuItem( "全屏", function(){
+    //   fullScreenEdit();
+    // });
+
+    menu_layer.addMenuItem( "保存", function(){
+      save();
+    });
+
+    var previous_button_index = menu_layer.addMenuItem( "上一页", function(){
+      previous();
+    });
+
+    var next_button_index = menu_layer.addMenuItem( "下一页", function(){
+      next();
+    });
+
+    var play_button = CCSprite.create("play.png");
+    menu_layer.addChild(play_button);
+
+    play_button.setAnchorpoint( 0.5, 0.5);
+    play_button.setScale(0.3);
+    play_button.setColor("#ffffff");
+    play_button.setBgOpacity(0.1);
+    play_button.setTouchEnabled(true);
+
+    play_button.layout = function( w, h) {
+      this.setPosition( w - menu_bar_height/2, menu_bar_height/2);
+    }
+    play_button.layout(menu_layer.width, menu_layer.height);
+
+    play_button.touchBegin = function()
+    {
+      this.setBgOpacity(0);
+    };
+
+    play_button.touchEnded = function( x, y)
+    {
+      type_animation();
+      this.setBgOpacity(0.1);
+    };
+
+    play_button.touchCanceled = function( x, y)
+    {
+      this.setBgOpacity(0.1);
+    };
+
+    play_button.setVisible(false);
+
+    menu_layer.getMenuItem = function(index)
+    {
+      var label = menu_layer.menu_items[index];
+      return label;
+    }
+
+    var target_scene_x = Sys.mobileSafari ? 0 : left_view_width;
+    scene.setPosition(target_scene_x, 0);
+
+    var editor_layer = CCLayer.create();
+    scene.addChild(editor_layer);
+    editor_layer.setColor("#666666");
+    editor_layer.setAnchorpoint(0,0);
+
+    editor_layer.layout_low = function( w, h)
+    {
+      if(Sys.mobileSafari)        
+        editor_layer.setContentSize( CCSizeMake( w, (h-30)/2) );
+      else
+        editor_layer.setContentSize( CCSizeMake( w - target_scene_x, (h-30)/2) );
+
+      editor_layer.setPosition( 0, 30);
+
+      if( editor )
+        editor.resize();
+    }
+
+    editor_layer.layout_high = function( w, h)
+    {
+      if(Sys.mobileSafari)        
+        editor_layer.setContentSize( CCSizeMake( w, h-30) );
+      else
+        editor_layer.setContentSize( CCSizeMake( w - target_scene_x, h-30) );
+
+      editor_layer.setPosition( 0, 30);
+
+      if( editor )
+        editor.resize();
+    }
+
+    editor_layer.setLayout = function( editor_layout )
+    {
+      editor_layer.layout = editor_layout;
+
+      editor_layer.layout( scene.width, scene.height);
+    }
+
+    editor_layer.setLayout(editor_layer.layout_high);
+
+    editor_layer.element.innerHTML = "<pre id='editor'></pre>";
+
+    var console_layer = CCLayer.create();
+    scene.addChild(console_layer);
+    console_layer.setColor("#000000");
+    console_layer.setAnchorpoint(0,0);
+    console_layer.showing = false;
+    console_layer.layout = function( w, h)
+    {
+        if(Sys.mobileSafari)
+          console_layer.setContentSize( CCSizeMake( w, (h-30)/2 ) );
+        else
+          console_layer.setContentSize( CCSizeMake( w - target_scene_x, (h-30)/2 ) );
+
+        console_layer.setPosition( 0, console_layer.showing ? (h-30)/2+30 : h);
+    }
+    console_layer.layout( scene.width, scene.height);
+    
+    console_layer.element.innerHTML = "<textarea id='output'rows=8 style='overflow:scroll;' ></textarea>";
+
+    var output = document.getElementById('output');
+    console_layer.output = output;
+
+    console_layer.setTouchEnabled(true);
+
+    console_layer.touchBeginY = -1;
+    console_layer.touchBeginScroll = -1;
+
+    console_layer.touchBegin = function( x, y)
+    {
+      var element = document.getElementById('output');
+      cclog("begin scroll:" + console_layer.output.scrollTop);
+      console_layer.touchBeginY = y;
+      console_layer.touchBeginScroll = console_layer.output.scrollTop;
+    };
+
+    console_layer.touchMoved = function( x, y) {
+      cclog( x + "," + y);
+      console_layer.output.scrollTop = console_layer.touchBeginScroll + (console_layer.touchBeginY - y);
+    };
+    
+    console_layer.setDepth(10);
+
+    console_layer.show = function(finished_callback)
+    {
+      console_layer.showing = true;
+      console_layer.runAction(Sequence([MoveTo( 0.2, 0, (scene.height-30)/2 + 30 ), CallFunc(function(){
+              
+              editor_layer.setLayout(editor_layer.layout_low);
+              
+              console_layer.setPosition( 0, (scene.height-30)/2 + 30);
+
+              if( typeof(finished_callback) !== "undefined" )
+                finished_callback();
+      })]));
+    }
+
+    console_layer.hide = function()
+    {
+      console_layer.showing = false;
+      editor_layer.setLayout(editor_layer.layout_high);
+      console_layer.runAction(MoveTo( 0.2, 0, scene.height));
+    }
+
+    var close_button = CCSprite.create("close.png");
+    console_layer.addChild(close_button);
+    close_button.setContentSize(CCSizeMake(32,32));
+    close_button.setScale(0.25);
+
+    close_button.layout = function( w, h)
+    {
+      close_button.setPosition( w-12.5, 12.5);
+    }
+    close_button.layout(console_layer.width, console_layer.height);
+
+    close_button.setTouchEnabled(true);
+
+    close_button.touchBegin = function( x, y)
+    {
+      this.setOpacity(0.5);
+    };
+
+    close_button.touchEnded = function( x, y) {
+      this.setOpacity(1);
+      fullScreenEdit();
+    };
+
+    close_button.touchCanceled = function( x, y)
+    {
+      this.setOpacity(1);
+    };
+
+    StartAnimation(1/60.0);
+
+    </script>
+
+    <div class="" display="none">
+      <progress value="0" max="100" id="progress" hidden=1></progress>
+    </div>
+
+    <canvas id="canvas" display="none" width="0px" height="0px" oncontextmenu="event.preventDefault()" tabindex=-1>
+      <div class="spinner" id='spinner'></div>
+      <div class="emscripten" id="status" >Downloading...</div>
+    </canvas>
+
+    <script type='text/javascript'>
+      var statusElement = document.getElementById('status');
+      var progressElement = document.getElementById('progress');
+      var spinnerElement = document.getElementById('spinner');
+
+      var Module = {
+        preRun: [],
+        postRun: [],
+        print: (function() {
+          var element = document.getElementById('output');
+          if (element) element.value = ''; // clear browser cache
+          return function(text) {
+            
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+
+            if(text.startsWith("::"))
+            {
+              try{
+                eval(text.substr(2));
+              }catch(e){};
+            }
+
+            // These replacements are necessary if you render to raw HTML
+            // text = text.replace(/&/g, "&amp;");
+            // text = text.replace(/</g, "&lt;");
+            // text = text.replace(/>/g, "&gt;");
+            // text = text.replace('\n', '<br>', 'g');
+            console.log(text);
+            if (element) {
+              element.value += text + "\n";
+              //element.innerHTML += text + "<br>";
+              element.scrollTop = element.scrollHeight; // focus on bottom
+            }
+          };
+        })(),
+        canvas: (function() {
+          var canvas = document.getElementById('canvas');
+
+          // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+          // application robust, you may want to override this behavior before shipping!
+          // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+          canvas.addEventListener("webglcontextlost", function(e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+          return canvas;
+        })(),
+        setStatus: function(text) {
+          if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+          if (text === Module.setStatus.last.text) return;
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          var now = Date.now();
+          if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
+          Module.setStatus.last.time = now;
+          Module.setStatus.last.text = text;
+          if (m) {
+            text = m[1];
+            progressElement.value = parseInt(m[2])*100;
+            progressElement.max = parseInt(m[4])*100;
+            progressElement.hidden = false;
+            spinnerElement.hidden = false;
+          } else {
+            progressElement.value = null;
+            progressElement.max = null;
+            progressElement.hidden = true;
+            if (!text) spinnerElement.style.display = 'none';
+          }
+          statusElement.innerHTML = text;
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+        }
+      };
+      Module.setStatus('Downloading...');
+      window.onerror = function(event) {
+        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+        Module.setStatus('Exception thrown, see JavaScript console');
+        spinnerElement.style.display = 'none';
+        Module.setStatus = function(text) {
+          if (text) console.error('[post-exception status] ' + text);
+        };
+      };
+
+    function exec(code)
+    {
+      if(!calledRun)
+          run([code]);
+        else
+          callMain([code]);
+    }
+
+    editor = ace.edit("editor");
+    editor.setTheme("ace/theme/twilight");
+    editor.getSession().setMode( "ace/mode/golang");
+
+    function execute()
+    {
+      var output = console_layer.output;
+      output.value = "";
+      
+      console_layer.show();
+      
+      exec(editor.getValue());
+    }
+    
+    function fullScreenEdit()
+    {
+      console_layer.hide();
+    }
+
+    editor.commands.addCommand({
+        name: 'save',
+        bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
+        exec: function(editor) {
+          save();
+        },
+        readOnly: true
+    });
+
+    editor.commands.addCommand({
+        name: 'run',
+        bindKey: {win: 'Ctrl-R',  mac: 'Command-R'},
+        exec: function(editor) {
+            execute();
+        },
+        readOnly: true
+    });
+
+    editor.commands.addCommand({
+          name: 'fullScreenEdit',
+          bindKey: {win: 'Ctrl-F',  mac: 'Command-F'},
+          exec: function(editor) {
+              fullScreenEdit();
+          },
+          readOnly: true
+      });
+
+    var index = parseInt( localStorage.index || 0 );
+
+    var open_files = ["1_HelloWorld.xs","2_Variables.xs","3_String.xs","4_While.xs","5_For.xs","6_If.xs","7_Function.xs","8_Recursion.xs","9_Closure.xs","10_Object.xs","11_Application.xs", "12_Try.xs"];
+
+    var is_course_dict = {};
+
+    for (var i = open_files.length - 1; i >= 0; i--) {
+      is_course_dict[open_files[i]] = true;
+    }
+
+    var loaded_file_list = localStorage.getItem("open_files");
+    if( loaded_file_list )
+      open_files = JSON.parse(loaded_file_list);
+
+    function is_course(file_name)
+    {
+      if( localStorage.getItem(file_name) !== null )
+        return false;
+
+      return is_course_dict[file_name] === true;
+    }
+
+    function previous()
+    {
+      load(index - 1);
+    }
+
+    function next()
+    {
+      load(index + 1);
+    }
+
+    function save()
+    {
+      localStorage.setItem( open_files[index], editor.getValue());
+    }
+
+    var file_view = null;
+
+    function create_new_file(file_name)
+    {
+      open_files.push(file_name);
+
+      i = open_files.length - 1;
+
+      switch_file( "", i, file_name);
+
+      localStorage.setItem("open_files", JSON.stringify(open_files));
+    }
+
+    function new_file()
+    {
+      var file_name = prompt("请输入文件名");
+
+      if(file_name != null && file_name.length > 0)
+      {
+        if(!file_name.endsWith(".xs"))
+          file_name += ".xs";
+
+        create_new_file(file_name);
+      }
+    }
+
+    //function delete_file(i)
+    //{
+      // remove content
+      //localStorage.setItem( open_files[index], editor.getValue());
+
+      // update index and content
+      //if( i <= index )
+      //  index -= 1;
+    //}
+
+    function switch_file( source, i, title)
+    {
+      editor.setValue(source);
+      editor.session.selection.clearSelection();
+
+      var output = console_layer.output;
+      if(output)
+        output.value = "";
+
+      fullScreenEdit();
+
+      document.title =  title;
+
+      localStorage.index = i;
+
+      index = i;
+
+      var previous_button = menu_layer.getMenuItem(previous_button_index);
+      previous_button.setDisabled(index - 1 < 0);
+
+      var next_button = menu_layer.getMenuItem(next_button_index);
+      next_button.setDisabled(index + 1 >= open_files.length);
+
+      if( file_view )
+        file_view.reload();
+    }
+
+    function load(i)
+    {
+      if( i >= 0 && i < open_files.length )
+      {
+        document.title = "Loading...";
+
+        if( is_course(open_files[i]) )
+        {
+          ajaxGet( "courses/"+open_files[i], function(source)
+          {
+            var title = (open_files[i].split("_"))[1];
+            switch_file( source, i, title);
+          });
+        }
+        else
+        {
+          var source = localStorage.getItem(open_files[i]);
+          switch_file( source || "", i, open_files[i]);
+        }
+      }
+      else
+      {
+        editor.setValue("");
+      }
+    }
+
+    load(index);
+
+    function update_cell( view, row)
+    {
+        var cell = view.getCell("cell");
+
+        if( typeof(cell.label) === "undefined" )
+        {
+          cell.setColor("#ffffff");
+
+          var label = CCLabel.create("test!");
+          cell.addChild(label);
+          cell.label = label;
+
+          label.padding = 20;
+          label.setAnchorpoint( 0, 0);
+          label.setPosition( label.padding, 0);
+          label.setColor("#eeeeee");
+          label.setFontSize(13);
+          label.layout = function( w, h)
+          {
+            this.setContentSize(CCSizeMake( w - label.padding*2, h));
+          }
+          label.layout( cell.width, cell.height);
+
+          label.element.style["font-family"] = "Helvetical";
+        }
+
+        cell.label.setString(view.dataSource[row]);
+
+        if(  row === index )
+        {
+          cell.setBgOpacity(0.1);
+        }
+        else
+        {
+          cell.setBgOpacity(0);
+        }
+
+        return cell;
+    }
+
+    function cell_event( row, event )
+    {
+      if( event == "delete" )
+      {
+        // remove data
+        localStorage.removeItem(file_view.dataSource[row]);
+
+        // update index
+        if( row <= index )
+          index -= 1;
+
+        if( index < 0 && (file_view.dataSource.length - 1) > 0 )
+          index = 0;
+      }
+      else if( event == "deleted" )
+      {
+        localStorage.setItem("open_files", JSON.stringify(open_files));
+        load(index);
+      }
+      else if( event ==  "end" )
+      {
+        if( row != index )
+          load(row);
+      }
+    }
+
+    file_view = create_table_view(CCSizeMake( left_view.width, left_view.height), menu_layer.height, 1, 0, update_cell, cell_event);
+
+    left_view.addChild(file_view);
+    file_view.setDataSource(open_files);
+
+    file_view.padding = 0;
+    file_view.setAnchorpoint( 0, 0);
+    file_view.setPosition( file_view.padding, menu_layer.height);
+    //file_view.setColor("#0066cc");
+
+    file_view.layout = function( w, h)
+    {
+      this.setContentSize(CCSizeMake( w-file_view.padding*2, h - menu_layer.height));
+    };
+    file_view.layout( left_view.width, left_view.height);
+
+    file_view.should_delete_cell = function(row)
+    {
+      var file_name = file_view.dataSource[row];
+
+      var yes = confirm( "是否要删除文件'" + file_name + "'?" );
+      if( yes )
+        return true
+
+      return false;
+    }
+
+    var file_view_title = CCLabel.create("文件列表");
+    left_view.addChild(file_view_title);
+
+    //file_view_title.setTextAlign("center");
+    //file_view_title.setBgColor("#ffffff");
+    //file_view_title.setBgOpacity(0.05);
+    //file_view_title.setColor("#eeeeee");
+
+    file_view_title.padding = 20;
+    file_view_title.setAnchorpoint( 0, 0);
+    file_view_title.setPosition( file_view_title.padding, 0);
+    file_view_title.setColor("#eeeeee");
+    file_view_title.setFontSize(15);
+    file_view_title.layout = function( w, h)
+    {
+      this.setContentSize(CCSizeMake( w - this.padding*2, menu_layer.height));
+    }
+    file_view_title.layout( left_view.width, left_view.height);
+
+    if( Sys.mobileSafari )
+    {
+      var tip = CCLabel.create("使用电脑访问体验更佳");
+      scene.addChild(tip);
+      tip.setColor("#eeeeee");
+      tip.setBgColor("#0066cc");
+      //tip.setBgOpacity(0.2);
+      tip.setAnchorpoint( 1, 1);
+      tip.setDepth(20);
+      tip.setTextAlign("center");
+      tip.layout = function(w,h)
+      {
+        tip.setContentSize(CCSizeMake( w, 30));
+        tip.setPosition( w, h);
+      }
+      tip.layout(scene.width, scene.height);
+      tip.runAction(Sequence([ DelayTime(6), FadeOut(0.5), Remove()]));
+    }
+
+    editor_layer.type_animation_index = 0;
+
+    function type_animation()
+    {
+      if(editor_layer.type_animation_index > 0 ) return;
+
+      var code = editor.getValue();
+      if(code.length == 0 ) return;
+      
+      editor_layer.type_animation_index = 1;
+      
+      play_button.setVisible(false);
+      console_layer.hide();
+      editor.setValue("");
+      
+      function animation()
+      {
+        editor_layer.runAction(Repeat(Sequence([DelayTime(1/30), CallFunc(function(){
+          
+          var current_code = code.substr( 0, editor_layer.type_animation_index);
+          
+          editor.setValue(current_code);
+          editor.selection.clearSelection();
+          
+          editor_layer.type_animation_index += 1;
+          
+          if( editor_layer.type_animation_index > code.length )
+          {
+            editor_layer.type_animation_index = 0;
+
+            function simulate_execute_button_touch()
+            {
+              var execute_button = menu_layer.getMenuItem(execute_button_index);
+              execute_button.simulate_touch();
+            }
+            
+            setTimeout(simulate_execute_button_touch, 1000);
+
+            setTimeout(function(){
+              play_button.setVisible(true);
+            }, 5000);
+
+          }
+          
+        })]), code.length));
+      }
+      
+      setTimeout( animation, 3000);
+    }
+
+    function su()
+    {
+      play_button.setVisible(true);
+    }
+    
+    </script>
+    <script async type="text/javascript" src="ScriptEngine.js"></script>
+</body>
+</html>

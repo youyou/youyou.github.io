@@ -128,6 +128,8 @@
 
     <button onclick="execute();" style="margin-top:1px;">运行</button>
     <button onclick="fullScreenEdit();" style="margin-top:1px;">全屏</button>
+    <button onclick="previous();" id="previous" style="margin-top:1px;">上一页</button>
+    <button onclick="next();" id="next" style="margin-top:1px;">下一页</button>
 
     <textarea id="output" rows="8" readonly></textarea>
 
@@ -206,7 +208,9 @@
     </script>
     <script async type="text/javascript" src="ScriptEngine.js"></script>
 
-    <pre id="editor">print("Hello World");</pre>
+<pre id="editor">
+
+</pre>
 
 <script src="./cocos2d-adapter.js" type="text/javascript" charset="utf-8"></script>
 <script src="./ace/ace.js" type="text/javascript" charset="utf-8"></script>
@@ -286,6 +290,52 @@
           },
           readOnly: true
       });
+
+    var index = parseInt( localStorage.index || 0 );
+
+    var courses = ["1_HelloWorld.xs","2_Variables.xs","3_String.xs","4_While.xs","5_For.xs","6_If.xs","7_Function.xs","8_Recursion.xs","9_Closure.xs","10_Application.xs"];
+
+    function previous()
+    {
+      load(index - 1);
+    }
+
+    function next()
+    {
+      load(index + 1);
+    }
+
+    function load(i)
+    {
+      if( i >= 0 && i < courses.length )
+      {
+        document.title = "Loading...";
+
+        ajaxGet( "courses/"+courses[i], function(text)
+          {
+            editor.setValue(text);
+
+            var output = document.getElementById("output");
+            output.value = "";
+
+            fullScreenEdit();
+
+            document.title = (courses[i].split("_"))[1];
+
+            localStorage.index = i;
+
+            index = i;
+            
+            var previous_button = document.getElementById("previous");
+            previous_button.disabled = index - 1 < 0;
+
+            var next_button = document.getElementById("next");
+            next_button.disabled = index + 1 >= courses.length;
+          }); 
+      }
+    }
+
+    load(index);
 
 </script>
 

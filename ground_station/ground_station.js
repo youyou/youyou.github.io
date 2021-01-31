@@ -90,24 +90,24 @@ if( typeof(config_device) !== 'undefined' ) {
     config_device();
 }
 
-function ChangeValue( time, beginValue, dValue, valueFunc ) {
-    var obj = TimeAction(time);
-    function start( target ) {
-        obj._start( target);
-        obj._beginValue = beginValue;
-    }
-    function step( p ) {
-        valueFunc( obj._beginValue + dValue * p );
-    }
-    function end() {
-        step( 1 );
-        obj._end();
-    }
-    obj.start  = start;
-    obj.step = step;
-    obj.end = end;
-    return obj;
-}
+// function ChangeValue( time, beginValue, dValue, valueFunc ) {
+//     var obj = TimeAction(time);
+//     function start( target ) {
+//         obj._start( target);
+//         obj._beginValue = beginValue;
+//     }
+//     function step( p ) {
+//         valueFunc( obj._beginValue + dValue * p );
+//     }
+//     function end() {
+//         step( 1 );
+//         obj._end();
+//     }
+//     obj.start  = start;
+//     obj.step = step;
+//     obj.end = end;
+//     return obj;
+// }
 
 function getIPs(callback){
     var ip_dups = {};
@@ -354,42 +354,21 @@ function MainScene() {
     
     var scene = null;
 
-    function CreateScene() {
-        
-        var w = window.innerWidth;
-        var h = window.innerHeight;
-        
+    function CreateScene() 
+    {    
         var scene = CCScene.create();
-        scene.setContentSize(CCSizeMake(w, h));
-        scene.setPosition(w/2,h/2);
         scene.setTouchEnabled(true);
         scene.setVisible(false);
         scene.element.setAttribute('class','scene');
         scene.element.style.overflow = "hidden";
-
-        function resize() {
-            w = window.innerWidth;
-            h = window.innerHeight;
-        }
-
-        scene.layout = function ( w, h) {
+        
+        scene.layout = function ( w, h)
+        {
             scene.setContentSize(CCSizeMake(w, h));
             scene.setPosition(w/2,h/2);
-            for (var i = 0; i < scene.childs.length; i++) {
-                if( typeof(scene.childs[i].layout) === "function" ) {
-                    scene.childs[i].layout( w, h);
-                }
-            };
         }
-
-        scene.runAction(RepeatForever(Sequence([ DelayTime(0.1), CallFunc(function(){
-            if( scene.width != w || scene.height != h ){
-                scene.layout( w, h);
-            }
-        })])));
-
-        window.addEventListener('resize', resize);
-
+        scene.layout( window.innerWidth, window.innerHeight);
+        
         return scene;
     }
 
@@ -702,10 +681,7 @@ function MainScene() {
 
     function VotageToPercent(votage) {
         
-        cclog("votage:"+votage);
-
         var votages = [4.22, 4.15, 4.14, 4.12, 4.10, 4.08, 4.05, 4.03, 3.97, 3.93, 3.90, 3.87, 3.84, 3.81, 3.79, 3.77, 3.76, 3.76, 3.74, 3.73, 3.72, 3.71, 3.69, 3.66, 3.65, 3.64, 3.63, 3.61, 3.59, 3.58];
-        
         var energyLeft = [100, 99, 97, 95, 92, 90, 87, 85, 80, 75, 70, 65, 60, 55, 50, 45, 42, 40, 35, 30, 25, 20, 15, 12, 10, 8, 5, 3, 1, 0];
         
         var index = votages.length - 1;
@@ -1460,86 +1436,181 @@ function MainScene() {
             return oscilloscopeLayer;
         }
         
+
+        function CreateSwitchControl(callback)
+        {
+           var switchControl = CCLayer.create();
+           switchControl.setContentSize(CCSizeMake(36,23));
+           //switchControl.setColor("#aa0000");
+           switchControl.element.innerHTML = "<input type='checkbox' id=\""+switchControl.id+":data_on\" class=\"mui-switch mui-switch-animbg\" style=\"margin-left:-8px;margin-top:-4px;\"  />";
+
+            var e = document.getElementById(""+switchControl.id+":data_on");
+            if(e)
+            {
+                e.onclick = function()
+                {
+                    switchControl.checked = this.checked;
+                    callback(switchControl);
+                }
+            }
+
+            switchControl.setChecked = function(checked){
+                e.checked = checked;
+                switchControl.checked = checked;
+                callback(switchControl);
+            }
+
+           return switchControl;
+        }
+
         function createDataIndexLayer() {
             
-            var dataIndexLayer = CCLayer.create();
-            dataIndexLayer.setContentSize( CCSizeMake( 200, scene.height));
-            dataIndexLayer.setAnchorpoint( 0, 0);
+            var indexCells = [];
+            var animateDuration = 0.2;
+            var banner_height = 22;
+            var hideIcon = false;
+
+            var dataIndexLayer = CCScrollLayer.create();
+            dataIndexLayer.setAnchorpoint( 1, 0);
             scene.addChild(dataIndexLayer);
-            dataIndexLayer.layout = function(w,h){
-                dataIndexLayer.setPosition( scene.width - dataIndexLayer.width, 0);
+            dataIndexLayer.setVisible(false);
+            dataIndexLayer.isShow = false;
+
+            dataIndexLayer.layout = function(w,h)
+            {
+                dataIndexLayer.setContentSize( CCSizeMake( 200, scene.height));
+                dataIndexLayer.setContentHeight(42+indexCells.length*62);
+
+                if(dataIndexLayer.isShow)
+                    dataIndexLayer.setPosition( w, 0);
+                else
+                    dataIndexLayer.setPosition( w+dataIndexLayer.width-banner_height, 0);
             }
-            dataIndexLayer.layout(scene.width,scene.height);
+            dataIndexLayer.layout( scene.width, scene.height);
 
-            dataIndexLayer.element.style.overflow = "auto";
+            if(dataIndexLayer.isShow)
+                dataIndexLayer.setBgOpacity(0.1);
+            else
+                dataIndexLayer.setBgOpacity(0);
 
-            var indexLabels = [];
+            dataIndexLayer.setColor("#ffffff");
+
+            var topLabel = CCLabel.create("");
+            topLabel.setBgColor("#00aaff");
+            dataIndexLayer.addChild(topLabel);
+            topLabel.setAnchorpoint( 0, 0);
+            topLabel.setPosition(0, 0); //scrollView.contentHeight);
+            topLabel.setColor("ffffff");
+            topLabel.setTextAlign("center");
+            topLabel.setDepth(2);
+
+            var showIcon = null;
+            var hideIcon = null;
+
+            dataIndexLayer.show = function()
+            {
+                dataIndexLayer.runAction( MoveTo( animateDuration, scene.width, 0) );
+                showIcon.setVisible(false);
+                hideIcon.setVisible(true);
+                dataIndexLayer.setBgOpacity(0.1);
+                dataIndexLayer.isShow = true;
+            }
+
+            showIcon = createButton( dataIndexLayer.show, "show.png");
+            topLabel.addChild(showIcon);
+            showIcon.setScale(banner_height/64.0*0.618);
+            showIcon.setAnchorpoint( 0.5, 0.5);
+            showIcon.setPosition( banner_height/2, banner_height/2);
+            if(dataIndexLayer.isShow) showIcon.setVisible(false);
+
+            dataIndexLayer.hide = function()
+            {
+                var moveAction = MoveTo( animateDuration, scene.width+dataIndexLayer.width-banner_height, 0);
+                dataIndexLayer.runAction(Sequence([ moveAction, CallFunc(function(){
+                    dataIndexLayer.setBgOpacity(0);
+                })]));
+                hideIcon.setVisible(false);
+                showIcon.setVisible(true);
+                dataIndexLayer.isShow = false;
+            }
+
+            hideIcon = createButton( dataIndexLayer.hide, "hide.png");
+            topLabel.addChild(hideIcon);
+            hideIcon.setScale(banner_height/64.0*0.618);
+            hideIcon.setAnchorpoint( 0.5, 0.5);
+            hideIcon.setPosition( banner_height/2, banner_height/2);
+            if(!dataIndexLayer.isShow) hideIcon.setVisible(false);
+
+            (topLabel.layout = function(w,h) {
+                topLabel.setContentSize(CCSizeMake(dataIndexLayer.width,banner_height));
+            })( dataIndexLayer.width, dataIndexLayer.contentHeight);
+            
+            dataIndexLayer.onScroll = function(offset)
+            {
+                topLabel.setPosition(0,offset);
+            }
             
             dataIndexLayer.addDataIndex = function( dataIndex, dataName) {
                 
-                var indexLabel = CCLayer.create();
+                var indexCell = CCLayer.create();
+                var margin = 5;
 
-
-                indexLabel._index = parseInt(dataIndex);
-
-                dataColors[indexLabel._index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);
+                indexCell.index = parseInt(dataIndex);
+                dataColors[indexCell.index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);                
                 
-                dataIndexLayer.addChild(indexLabel);
-                
-                indexLabels.push(indexLabel);
+                dataIndexLayer.addChild(indexCell);
+                indexCells.push(indexCell);
 
-                indexLabel.setContentSize( CCSizeMake( 150, 23));
-                indexLabel.setAnchorpoint( 0, 0);
-                indexLabel.setPosition( 42, 42+indexLabel._index*62);
-                indexLabel.setColor(dataColors[indexLabel._index]);
-                
-                indexLabel.element.style.borderColor = "#eeeeee";
-                indexLabel.element.style.borderStyle = "solid";
-                indexLabel.element.style.borderWidth = "2px";
-                indexLabel.element.style.borderRadius = "2px";
+                indexCell.setContentSize( CCSizeMake( 150, 30));
+                indexCell.setAnchorpoint( 0.5, 0);
+                indexCell.setPosition( dataIndexLayer.width/2, 42+indexCell.index*62);
+                indexCell.setColor(dataColors[indexCell.index]);
 
-                indexLabel.element.innerHTML = "<input type='checkbox' id=\""+indexLabel._index+":data_on\"/>" + dataName + ""; //(dataColors.length);
+                dataIndexLayer.setContentHeight(42+indexCell.index*62+23+42);
+
+                var switchControl = CreateSwitchControl(function(theSwitchControl) {
+                    if( !theSwitchControl.checked )
+                    {
+                        dataColors[theSwitchControl.index] = 'transparent';
+                    } else {
+                        dataColors[theSwitchControl.index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);
+                        indexCells[theSwitchControl.index].setColor(dataColors[theSwitchControl.index]);
+                    }
+                });
+
+                switchControl.setAnchorpoint( 0, 0.5);
+                switchControl.setPosition(3,indexCell.height/2);
+                switchControl.index = indexCell.index;
+                indexCell.switchControl = switchControl;
+                switchControl.setChecked(true);
+
+                var indexLabel = CCLabel.create(dataName);
+                indexLabel.setAnchorpoint(0,0);
+                indexLabel.setPosition(switchControl.width+margin*2,0);
+                indexLabel.setContentSize(CCSizeMake(indexCell.width-switchControl.width-margin*2, indexCell.height));
+                indexLabel.index = indexCell.index;
+
+                indexCell.addChild(indexLabel);
+                indexCell.addChild(switchControl);
+
+                indexCell.element.style.borderStyle = "solid";
+                indexCell.element.style.borderWidth = "1px";
+                indexCell.element.style.borderRadius = "2px";
                 
                 indexLabel.setTouchEnabled(true);
-                
-                var e = document.getElementById(""+indexLabel._index+":data_on");
-                if(e)
-                {
-                    e.onclick = function() {
-                        if( !this.checked ) 
-                        {
-                            var index = parseInt(this.id);
-                            dataColors[index] = 'transparent';
-                            indexLabels[index].setColor(dataColors[this._index]);
-                            indexLabels[index].element.style.borderColor = "#eeeeee";
-                        }
-                    }
-                }
 
                 indexLabel.touchEnded = function(x,y) 
                 {
-                    //cclog("touch ended x:"+x+",y:"+y+" w:"+indexLabel.width+" h:"+indexLabel.height);
-                    if(x > indexLabel.width || x < 0 || y > indexLabel.height || y < 0 ) {
+                    if(x > indexCell.width || x < 0 || y > indexCell.height || y < 0 ) {
                         indexLabel.touchCanceled();
                     } else {
-                        dataColors[this._index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);
-                        this.setColor(dataColors[this._index]);
-                        this.setBgOpacity(1);
-                        this.element.style.borderColor = "#eeeeee";
+                        indexCells[this.index].switchControl.setChecked(true);
                     }
                 };
                 
                 indexLabel.touchCanceled = function() {
-                    
-                    cclog("touch cancel");
-                    
-                    dataColors[this._index] = 'transparent';
-                    indexLabel.setBgOpacity(0);
-                    
-                    cclog("index:"+this._index+" color:"+dataColors[this._index]);
-                    this.element.style.borderColor = "#eeeeee";
+                    indexCells[this.index].switchControl.setChecked(false);
                 };
-
             }
             
             dataIndexLayer.setMark = function(dataMark) {
@@ -1548,12 +1619,20 @@ function MainScene() {
                 dataColors.length = 0;
                 
                 //set mark
-                for( var i=0; i<indexLabels.length; ++i) {
-                    indexLabels[i].removeFromParent();
-                    indexLabels[i] = null;
+                for( var i=0; i<indexCells.length; ++i) {
+                    indexCells[i].removeFromParent();
+                    indexCells[i] = null;
                 }
                 
-                indexLabels.length = 0;
+                topLabel.setString(dataMark);                
+
+                indexCells.length = 0;
+
+                if(!dataIndexLayer.isVisible())
+                    dataIndexLayer.setVisible(true);
+
+                if(!dataIndexLayer.isShow)
+                    this.show();
             }
             
             return dataIndexLayer;
@@ -1975,11 +2054,16 @@ function MainScene() {
         
         sensorsLayer = CCLayer.create();
         sensorsLayer.setContentSize(size);
-        sensorsLayer.setPosition( scene.width/2, scene.height/2);
         sensorsLayer.setColor(ccc3( 255, 255, 255));
         sensorsLayer.setBgOpacity(0.2);
-        scene.addChild(sensorsLayer);
         sensorsLayer.setVisible(false);
+        scene.addChild(sensorsLayer);
+        
+        sensorsLayer.layout = function(w,h)
+        {
+            sensorsLayer.setPosition( scene.width/2, scene.height/2);
+        }
+        sensorsLayer.layout(scene.width,scene.height);
         
         var iconDistance = 80;
         var startX = size.width/2 - (sensors.length-1)*(iconDistance/2);
@@ -2219,30 +2303,12 @@ function LoadingScene(sceneToLoad)
     scene.setContentSize(CCSizeMake(w, h));
     scene.setPosition(w/2,h/2);
     scene.element.setAttribute('class','scene');
-    
-    function resize() {
-            w = window.innerWidth;
-            h = window.innerHeight;
-    }
 
     scene.layout = function ( w, h) {
         scene.setContentSize(CCSizeMake(w, h));
         scene.setPosition(w/2,h/2);
-        for (var i = 0; i < scene.childs.length; i++) {
-            if( typeof(scene.childs[i].layout) === "function" ) {
-                scene.childs[i].layout( w, h);
-            }
-        };
     }
-
-    scene.runAction(RepeatForever(Sequence([ DelayTime(0.1), CallFunc(function(){
-        if( scene.width != w || scene.height != h ){
-            scene.layout( w, h);
-        }
-    })])));
-
-    window.addEventListener('resize', resize);
-
+    
     var process_bar = createProcessBar();
     scene.addChild(process_bar);
     process_bar.setAnchorpoint( 0.5, 0.5);
@@ -2252,9 +2318,9 @@ function LoadingScene(sceneToLoad)
         process_bar.setContentSize(CCSizeMake(300, 3));
         process_bar.setPosition(scene.width/2,scene.height/2+15);
     }
-
+    
     process_bar.layout(scene.width,scene.height);
-
+    
     var processLabel = createLabelDefaultStyle( "LOADING %0", scene.width/2, scene.height/2);
     scene.addChild(processLabel);
     processLabel.setColor("#FFFFFF");
@@ -2266,16 +2332,30 @@ function LoadingScene(sceneToLoad)
         processLabel.setPosition(scene.width/2, scene.height/2);
     }
     processLabel.layout(scene.width,scene.height);
+    
+    var percent = 0;
+    var filter_paremeter = 0.618;
 
-    scene.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() {
-        processLabel.setString("LOADING %"+ parseInt(getLoadingPercentage()));
-        process_bar.setProcess(getLoadingPercentage());
-        if( isAllResourceReady() ) {
-            sceneToLoad.show();
-            scene.stopAllActions();
-            scene.removeAllChildsAndCleanUp(true);
-            scene.removeFromParent();
+    scene.jump = function()
+    {
+        sceneToLoad.show();
+        scene.stopAllActions();
+        scene.removeAllChildsAndCleanUp(true);
+        scene.removeFromParent();
+    }
+
+    scene.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() 
+    {
+        percent = (percent * filter_paremeter) + (getLoadingPercentage() * (1-filter_paremeter));
+        
+        var p = parseInt(percent+0.5);
+        processLabel.setString("LOADING "+ p +"%");
+        process_bar.setProcess(p);
+        
+        if( parseInt(percent+0.5) === 100 & isAllResourceReady() ) {
+            setTimeout( scene.jump, 500);
         }
+        
     })])));
 }
 

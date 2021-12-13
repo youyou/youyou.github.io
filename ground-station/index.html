@@ -1,0 +1,2719 @@
+<html manifest="quadcopter_control_cache.manifest">
+    <head>
+        <meta charset="utf-8">
+            <meta name="viewport" content="width=320 user-scalable=no"/>
+            <meta name="x5-orientation" content="portrait"/>
+            <meta name="x5-fullscreen" content="true" />
+            <meta name="x5-page-mode" content="app" />
+            <meta name="apple-mobile-web-app-capable" content="yes" />
+            <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+            <link rel="apple-touch-startup-image" href="start.png" media="(device-height:1334px)" />
+            <link rel="apple-touch-icon" href="icon.png"/>
+            <title>四轴遥控</title>
+            <div id='wx_pic' style='margin:0 auto;display:none;'>
+                <img src='rainbowicon.png' />
+            </div>
+            <style>
+                .mui-switch {
+                    width: 52px;
+                    height: 31px;
+                    position: relative;
+                    border: 1px solid #dfdfdf;
+                    background-color: #fdfdfd;
+                    box-shadow: #dfdfdf 0 0 0 0 inset;
+                    border-radius: 20px;
+                    border-top-left-radius: 20px;
+                    border-top-right-radius: 20px;
+                    border-bottom-left-radius: 20px;
+                    border-bottom-right-radius: 20px;
+                    background-clip: content-box;
+                    display: inline-block;
+                    -webkit-appearance: none;
+                    user-select: none;
+                    outline: none;
+                    transform: scale(0.68, 0.68);
+                }
+            .mui-switch:before {
+                content: '';
+                width: 29px;
+                height: 29px;
+                position: absolute;
+                top: 0px;
+                left: 0;
+                border-radius: 20px;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                border-bottom-left-radius: 20px;
+                border-bottom-right-radius: 20px;
+                background-color: #fff;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4); }
+            .mui-switch:checked {
+                border-color: #64bd63;
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63; }
+            .mui-switch:checked:before {
+                left: 21px; }
+            .mui-switch.mui-switch-animbg {
+                transition: background-color ease 0.4s; }
+            .mui-switch.mui-switch-animbg:before {
+                transition: left 0.3s; }
+            .mui-switch.mui-switch-animbg:checked {
+                box-shadow: #dfdfdf 0 0 0 0 inset;
+                background-color: #64bd63;
+                transition: border-color 0.4s, background-color ease 0.4s; }
+            .mui-switch.mui-switch-animbg:checked:before {
+                transition: left 0.3s; }
+            .mui-switch.mui-switch-anim {
+                transition: border cubic-bezier(0, 0, 0, 1) 0.4s, box-shadow cubic-bezier(0, 0, 0, 1) 0.4s; }
+            .mui-switch.mui-switch-anim:before {
+                transition: left 0.3s; }
+            .mui-switch.mui-switch-anim:checked {
+                box-shadow: #64bd63 0 0 0 16px inset;
+                background-color: #64bd63;
+                transition: border ease 0.4s, box-shadow ease 0.4s, background-color ease 1.2s; }
+            .mui-switch.mui-switch-anim:checked:before {
+                transition: left 0.3s;
+                transform: scale(0.68, 0.68);
+            }
+            </style>
+            <style>
+                .scene {
+                    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,7db9e8+100 */
+                    background: rgb(30,87,153); /* Old browsers */
+                    background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%); /* FF3.6-15 */
+                    background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* Chrome10-25,Safari5.1-6 */
+                    background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+                    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */
+                }
+            </style>
+            </head>
+    <body ondragstart="return false;"  ondrop="return false;" class="scene" style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#fffffff >
+        <audio id="snd" preload="auto" src="hit_bounds.mp3"></audio>
+    </body>
+    <script src="cocos2d-adapter.js"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="plugins/cordova-plugin-chrome-apps-common/errors.js"></script>
+    <script type="text/javascript" src="plugins/cordova-plugin-chrome-apps-common/events.js"></script>
+    <script type="text/javascript" src="plugins/cordova-plugin-chrome-apps-common/helpers.js"></script>
+    <script type="text/javascript" src="plugins/cordova-plugin-chrome-apps-common/stubs.js"></script>
+    <script type="text/javascript" src="plugins/cordova-plugin-chrome-apps-sockets-udp/sockets.udp.js"></script>
+    
+    <script>
+    
+    // 1.1.3
+    // close settings layer when touch start button
+    // auto start plane when connected
+    // reload page support
+    // settings layer scroll
+    
+    var exec = null;
+    
+    if( typeof(cordova) !== 'undefined' )
+        exec = cordova.require("cordova/exec");
+    
+    function str2ab(s,f)
+    {
+        var b = new Blob([s],{type:'text/plain'});
+        var r = new FileReader();
+        r.readAsArrayBuffer(b);
+        r.onload = function (){if(f)f.call(null,r.result)}
+    }
+
+    function ab2str(buf, callback) {
+        var bb = new Blob([buf],{type:'text/plain'});
+        var f = new FileReader();
+        f.onload = function(e) {
+            callback(e.target.result)
+        }
+        f.readAsText(bb);
+    }
+
+    var udp = null;
+    var udp_network = null;
+
+    function UDPSocket( ip, port)
+    {   
+
+        if( udp_network === null)
+        {
+            udp_network = {};
+        }
+        else
+        {
+            udp_network.ready = false;
+            udp_network.send('h');
+            return udp_network;
+        }
+
+        if( typeof(cordova) !== 'undefined' && udp === null )
+        {
+            try {
+                udp = cordova.require("cordova-plugin-chrome-apps-sockets-udp.sockets.udp");
+            } catch(e) {}
+        }
+        
+        udp_network.socketId = -1;
+        udp_network.ready = false;
+
+        udp_network.send = function(message)
+        {
+            str2ab( message, function(arraybuffer)
+            {
+                if( udp_network.socketId >= 0 )
+                {
+                    udp.send( udp_network.socketId, arraybuffer,  ip, port, function(sendInfo) {
+                            console.log("bytesSent:"+sendInfo.bytesSent+" "+message);
+                        });
+                }
+            });
+        };
+
+        udp_network.send_bin = function(arraybuffer)
+        {
+            if( udp_network.socketId >= 0 )
+            {
+                udp.send( udp_network.socketId, arraybuffer, ip, port, function(sendInfo) {
+                        //console.log("bytesSent:"+sendInfo.bytesSent);
+                    });
+            }
+        }
+        
+        udp_network._onmessage = function (evt)
+        {            
+            if( !udp_network.ready )
+            {
+                udp_network.ready = true;
+                udp_network.onopen({});
+            }
+            
+            ab2str(evt.data, function(s)
+            {
+                evt.data = s;
+                udp_network.onmessage(evt);
+            });
+        };
+        
+        udp_network._onerror = function(evt)
+        {
+            if( udp_network.ready )
+            {
+                udp_network.close();
+            }
+        };
+
+        function create_bind_callback(udp_network)
+        {
+            return function(createInfo)
+            {
+                udp_network.socketId = createInfo.socketId;
+                
+                udp.onReceive.addListener(udp_network._onmessage);
+                udp.onReceiveError.addListener(udp_network._onerror);
+                
+                udp.bind( udp_network.socketId, "0.0.0.0", 88, function(result) { 
+                    //console.log("bind result:"+result);
+                });
+
+                udp_network.send('h');
+            };
+        }
+
+        udp.create( {}, create_bind_callback(udp_network));
+
+        // default callback
+        udp_network.onopen = function(evt) {}
+        udp_network.onmessage = function(evt) {}
+        udp_network.onclose = function(evt){}
+
+        udp_network.close = function()
+        {
+            console.log("udp.close");
+            udp_network.onclose({});
+            udp_network.ready = false;
+        }
+        
+        return udp_network;
+    }
+
+    var version = "1.1.3";
+    var planeIp = "192.168.4.1";
+    var skyColor  = ccc3( 22, 125, 178);
+    
+    var SettingsButtonTouched = function(){};
+    
+    function hit_bound() {
+        var audio = document.getElementById("snd");
+        audio.play();
+    }
+    
+    function PlaneScene() {
+        
+        var scene = null;
+        var flyingTime = 0;
+        var cloud = null;
+        
+        var AIM_PITCH = 0;
+        var AIM_ROLL = 0;
+        var ROTATE = 0;
+        var THR    = 0;
+        var HEADING = 0.0;
+        var MOTORS_ON = false;
+        var GYRO_STABLE = true;    // set to true to disable auto start when using new IMU_STATE
+        var IMU_STATE = 0;
+        var MAX_ABS_PITCH = 0;
+        //var MAX_ABS_ROLL = 0;
+
+        var messagebuffer = new ArrayBuffer(25);
+        var messageint8view  = new Uint8Array(messagebuffer);
+        var rc_chanels  = new Int16Array( messagebuffer, 8, 8);
+
+        function CreateScene() {
+            
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            
+            var scene = CCScene.create();
+            scene.setContentSize(CCSizeMake(w, h));
+            scene.setPosition( w/2, h/2);
+            scene.setColor(skyColor);
+            scene.setTouchEnabled(true);
+            scene.setVisible(false);
+            
+            scene.element.setAttribute('class','scene');
+            
+            scene.layout = function ( w, h)
+            {
+                scene.setContentSize(CCSizeMake(w, h));
+                scene.setPosition(w/2,h/2);
+                for (var i = 0; i < scene.childs.length; i++) {
+                    if( typeof(scene.childs[i].layout) === "function" ) {
+                        scene.childs[i].layout( w, h);
+                    }
+                };
+            }
+
+            function resize() {
+                scene.layout( window.innerWidth, window.innerHeight);
+            }
+
+            window.addEventListener('resize', resize);
+
+            return scene;
+        }
+        
+        function AddCloud( scene ) {
+            
+            cloud = CCSprite.create( "cloud.png");
+            scene.addChild(cloud);
+            cloud.setScale(0.8);
+            
+            cloud.layout = function(w,h)
+            {
+                cloud.setPosition( scene.width/2, scene.height-cloud.height/2);
+            }
+
+            cloud.onload = function(w, h) {
+                cloud.layout( w, h);
+            }
+            
+            return cloud;
+        }
+
+        function AddEarth(scene) {
+            var earth = CCSprite.create("earth.png");
+            scene.addChild(earth);
+            earth.setPosition(scene.width/2, scene.height+280);
+            earth.runAction(RepeatForever(ChangeValue(365, 0, -360, function(v) {
+                                                      earth.element.style.transform = "rotate("+v+"deg)";
+                                                      })));
+        }
+        
+        function onUnlockedMotor() {
+            
+            if( !network.ready ) {
+                touchLayer.lockMotor();
+                QALayer.showDialog("请先连接飞机WIFI！");
+                return;
+            }
+            
+            if( batteryLayer && batteryLayer.isLowPower() ) {
+                touchLayer.lockMotor();
+                QALayer.showDialog("电量低，请先充电！");
+                return;
+            }
+            
+            if( !MOTORS_ON )
+            {
+                touchLayer.lockMotor();
+                QALayer.showDialog("请先解锁电机！");
+            }
+            
+            cclog("FLYING BEGIN");
+            cloud.runAction(RepeatForever(Sequence([ DelayTime(1), CallFunc(function() {
+                                                                                flyingTime += 1;
+                                                                                if( !network.ready ) {
+                                                                                    cclog("flying interrupt at time:" + flyingTime);
+                                                                                    flyingTime = 0;
+                                                                                    cloud.stopAllActions();
+                                                                                }
+                                                                            })])));                         
+            //network.send("MOTORS_ON#1");
+            //MOTORS_ON = true;
+        }
+        
+        function onLockedMotor() {
+            
+            cloud.stopAllActions();
+            
+            cclog("FLYING TIME:" + flyingTime);
+            
+            // if( network.ready ) {
+            //     network.send("MOTORS_ON#0");
+            //     MOTORS_ON = false;
+            // }
+            
+            // if plane fly for a short time, may be plane need correction
+            if( network.ready && flyingTime>5 && flyingTime < 60 ) {
+                //ExecutePlaneCorrection();
+            }
+            
+            flyingTime = 0;
+        }
+        
+        function AddTouchLayer(scene) {
+            
+            touchLayer = CCLayer.create();
+            scene.addChild(touchLayer);
+            touchLayer.setPosition( scene.width/2, scene.height/2);
+            touchLayer.setContentSize( CCSizeMake( (scene.width), (scene.height) ) );
+            touchLayer.setTouchEnabled(true);
+            touchLayer._controledObject = null;
+            touchLayer._viewBtn = null;
+            
+            var kdx = 0.6;
+            var ignoreDxRange = scene.width/10;
+            var beginY = -1;
+            var beginX = -1;
+            
+            var maxVerticalRange = 320;
+            var value  = 0;
+            var beginValue = value;
+            var verticalSpace = scene.height > maxVerticalRange ? maxVerticalRange : scene.height;
+            
+            var beginState;
+            
+            touchLayer.touchBegin = function( x, y) {
+                beginY = y;
+                beginX = x;
+                if(touchLayer._controledObject === null) return;
+                
+                beginState = touchLayer._controledObject._locked;
+                //touchLayer._controledObject._locked = true;
+                
+                var cloudHeight = touchLayer._controledObject.height;
+                var cloudSpace  = scene.height-touchLayer._controledObject.height;
+                
+                beginValue = value = (cloudSpace+cloudHeight/2-touchLayer._controledObject.y)/cloudSpace;
+            };
+            
+            touchLayer.touchMoved = function( x, y) {
+                
+                var dy = y - beginY;
+                var dx = x - beginX;
+                
+                if(touchLayer._controledObject === null) return;
+                
+                var cloudHeight = touchLayer._controledObject.height;
+                var cloudSpace  = scene.height-touchLayer._controledObject.height;
+                
+                value = beginValue - dy/verticalSpace;
+                value = value > 0 ? value : 0;
+                value = value < 1 ? value : 1;
+                
+                if(Math.abs(dx)<ignoreDxRange) dx = 0;
+                var dir = dx/(scene.width/2);
+                if(dir>1) dir = 1;
+                if(dir<-1) dir = -1;
+                
+                touchLayer._controledObject.setPosition( scene.width/2+kdx*dx, scene.height-cloudHeight/2-cloudSpace*value );
+                SetPlaneSpeed( value, dir);
+            };
+            
+            touchLayer.touchEnded = function( x, y) {
+                
+                var dy = y - beginY;
+                var dx = 0;
+                
+                if( touchLayer._controledObject === null ) return;
+                
+                var cloudHeight = touchLayer._controledObject.height;
+                var cloudSpace  = scene.height-touchLayer._controledObject.height;
+                touchLayer._controledObject.setPosition( scene.width/2+kdx*dx, scene.height-cloudHeight/2-cloudSpace*value );
+                
+                SetPlaneSpeed( value, 0);
+                
+                if( value > 0 ) {
+                    touchLayer._controledObject._locked = false;
+                    if( beginState === true ) onUnlockedMotor();
+                } else {
+                    touchLayer.lockMotor();
+                    if( beginState === false ) onLockedMotor();
+                }
+                
+                beginX = -1;
+                beginY = -1;
+            };
+            
+            touchLayer.touchCanceled = touchLayer.touchEnded;
+            
+            touchLayer.setControledObject = function(obj) {
+                touchLayer._controledObject = obj;
+            };
+            
+            touchLayer.setCloudPosYByPercent = function(value) {
+                if( !MOTORS_ON ) return;
+                var cloudHeight = touchLayer._controledObject.height;
+                var cloudSpace  = scene.height-touchLayer._controledObject.height;
+                touchLayer._controledObject.setPosition( scene.width/2, scene.height-cloudHeight/2-cloudSpace*value );
+            }
+            
+            touchLayer.unlockMotor = function() {
+                //MOTORS_ON = true;
+                touchLayer._controledObject._locked = false;
+            }
+            
+            touchLayer.lockMotor = function() {
+                //MOTORS_ON = false;
+                SetPlaneSpeed( 0, 0);
+                touchLayer._controledObject.setPosition( scene.width/2, scene.height-touchLayer._controledObject.height/2);
+                touchLayer._controledObject._locked = true;
+            }
+            
+            return touchLayer;
+        }
+        
+        
+        function AddRainbow(scene)
+        {
+            rainbow = CCSprite.create( "rainbow.png");
+            scene.addChild(rainbow);
+            rainbow.onload = function() {
+                rainbow.setPosition( scene.width+30, rainbow.height/6);
+            }
+            rainbow.setOpacity(0);
+            
+            var label = CCLabel.create("RSSI:0  ");
+            scene.addChild(label);
+            label.setAnchorpoint( 1, 0);
+            label.setPosition( scene.width-8, 5);
+            label.setBgColor(ccc3( 255, 255, 255));
+            label.setBgOpacity(0.2);
+            label.setColor(ccc3( 255, 255, 255));
+            label.setContentSize( CCSizeMake( 80, 22));
+            label.setTextAlign("center");
+            label.setOpacity(0);
+            
+            rainbow.show = function show(isShow)
+            {
+                if( isShow )
+                {
+                    rainbow.runAction(FadeIn(1));
+                    label.runAction(FadeIn(1));
+                }
+                else
+                {
+                    rainbow.runAction(FadeOut(1));
+                    label.runAction(FadeOut(1));
+                }
+            }
+            
+            rainbow.runAction(
+                RepeatForever(
+                              Sequence([ DelayTime(0.5),
+                               CallFunc(
+                                        function()
+                                        {
+                                            if( exec != null ) {
+                                                exec( function(rssi) {
+                                                    label.setString("RSSI:"+rssi);
+                                                }, null, 'Utils', 'getWiFiStrength', []);
+                                            }
+                                        }
+                                )
+                    ])
+                )
+            );
+        }
+        
+        function CreateWebSocket() {
+            
+            if( typeof(network) !== 'undefined' && network !== null ) {
+                network.close();
+            }
+            
+            network = new WebSocket("ws:"+planeIp); //UDPSocket( planeIp, 88); //
+            network.ready = false;
+
+            console.log("connecting "+"udp:"+planeIp);
+            
+            network.onopen = function(evt) {
+                
+                console.log("CONNECTED");
+                
+                network.ready = true;
+                
+                rainbow.show(true);
+                
+                if( typeof(batteryLayer) !== 'undefined' )
+                batteryLayer.runAction(FadeIn(1));
+                
+                network.send("刷新数据");
+
+                scene.runAction(Sequence([DelayTime(0.5),CallFunc(function(){
+                	if( !GYRO_STABLE )
+	                	network.send("启动");
+                })]));
+            };
+            
+            network.onclose = function(evt) {
+                
+                console.log("DISCONNECTED");
+                
+                network.ready = false;
+                rainbow.show(false);
+                SetDebugString("连接断开");
+                
+                if( typeof(batteryLayer) !== 'undefined' )  {
+                    batteryLayer.runAction(Sequence([FadeOut(1),CallFunc(function() {
+                                                                         if( typeof(batteryLayer) !== 'undefined' )
+                                                                         batteryLayer.destory();
+                                                                         })]) );
+                }
+                
+                touchLayer.lockMotor();
+            };
+            
+            network.onmessage = function(evt) {
+                var message = evt.data;
+                onReceiveMessage(message);
+            };
+            
+            network.onerror = function(evt) {
+                console.log("网络错误");
+            };
+        }
+        
+        function onReceiveMessage(message) {
+            
+            console.log(message);
+            
+            var infoArray = message.split('|');
+            
+            if( infoArray[0] == "VAR" ) {
+                
+                dataManager.onDataMessage(infoArray);
+                return ;
+
+            } else if( infoArray[0] == "LOG" ) {
+                
+	            if( infoArray[1]=="I" ) {
+	                console.log("%c"+infoArray[2], "color:#66aa66");
+	            }
+                else if( infoArray[1]=="D" )
+                {
+                    SetDebugString(infoArray[2]);
+
+                    if( typeof(pitch_indicator) !== "undefined" && MAX_ABS_PITCH !== 0 )
+                    {
+                        try {
+                            var pitch = parseFloat( (infoArray[2].split(','))[1].split(':')[1] );
+                            pitch_indicator.setPosition( pitch_indicator.x, scene.height/2+2.6*50*pitch/MAX_ABS_PITCH );
+                        }
+                        catch (error) {
+                        }
+                    }
+                }
+	            else if(infoArray[1]=="ALERT") {
+	                QALayer.showDialog(infoArray[2],3);
+	            }
+	            else if(infoArray[1]=="EVENT")
+                {
+                    if( infoArray[2]== "FAILED_GYRO_STABLE" )
+                    {
+	                    QALayer.showDialog( "请校准陀螺仪", 3);
+                        if(typeof(sensorsLayer) !== "undefined" && sensorsLayer.isVisible())
+                            sensorsLayer.close();
+	                }
+	            }
+
+	            return;
+	        }
+            
+            if( infoArray.length == 3 )
+            {
+                var value = parseInt(message);
+                var vadc  = (value/1024.0)*0.26/0.27;
+                var v     = vadc*((3.72)/0.263);
+                
+                // enable battery display when plane sends battery data
+                if( typeof(batteryLayer) == 'undefined' )
+                {
+                    var tv = v;
+                    var s = 1;
+                    
+                    while( tv > 4.5 ) {
+                        s += 1;
+                        tv -= 4.5;
+                    }
+                    
+                    AddBattery(scene);
+                    batteryLayer.runAction(FadeIn(1));
+                    batteryLayer.setCellCount(s);
+                }
+                
+                if( typeof(batteryLayer) !== 'undefined' )
+                batteryLayer.setBatteryPower(VotageToPercent(v/batteryLayer._s));
+            }
+        }
+        
+        function CreateSenderQueue(scene) {
+            
+            // this queue is used to ignore too frequent messages
+            senderQueue = {}
+            
+            senderQueue.senderStack = [];
+            
+            senderQueue.send = function(data) {
+                senderQueue.senderStack.push(data);
+            }
+            
+            senderQueue.heartBeatCounter = 0;
+            
+            var sendInterval = 0.05;
+            var heartBeatTime = 8.0;
+            
+            var maxHeartBeatCounterValue = heartBeatTime/sendInterval;
+            
+            var lastMessage = "UpdateState#" + AIM_PITCH + "," + AIM_ROLL + "," + ROTATE + "," + THR + "," + HEADING;
+            
+            function SendData()
+            {
+                var stateMessage = "UpdateState#" + AIM_PITCH + "," + AIM_ROLL + "," + ROTATE + "," + THR + "," + HEADING;
+
+                if( MOTORS_ON && network.ready &&  stateMessage !== lastMessage ) {
+
+                    if( typeof(network.send_bin) != "undefined" )
+                    {                        
+                        // 0 1 2 3   4      [ ... ] len+5
+                        // $ M < len type   payload checksum
+
+                        messageint8view[0] = 'R'.charCodeAt(0);
+                        messageint8view[1] = 'C'.charCodeAt(0);
+                        messageint8view[2] = '#'.charCodeAt(0);
+                        messageint8view[3] = '$'.charCodeAt(0);
+                        messageint8view[4] = 'M'.charCodeAt(0);
+                        messageint8view[5] = '<'.charCodeAt(0);
+
+                        var payload_len = 16;
+                        var check_sum_index = payload_len + 8;
+
+                        messageint8view[6] = payload_len;
+                        messageint8view[7] = 200;
+
+                        // rc_chanels[0] = 1500;
+                        // rc_chanels[1] = 1500;
+                        // rc_chanels[2] = 1500;
+                        // rc_chanels[3] = 1500;
+                        // rc_chanels[4] = 1000;
+                        // rc_chanels[5] = 1000;
+                        // rc_chanels[6] = 1000;
+                        // rc_chanels[7] = 1000;
+
+                        var checksum = 0;
+
+                        for(var i=6; i<check_sum_index; ++i)
+                            checksum ^= messageint8view[i];
+                        
+                        messageint8view[check_sum_index] = checksum & 255;
+                        
+                        network.send_bin(messagebuffer);
+                    //SetDebugString(""+rc_chanels[0]+",:"+rc_chanels[1]+","+rc_chanels[2]+","+rc_chanels[3]);
+                        //console.log("checksum %d!", messageint8view[check_sum_index]);
+                    }
+                    else
+                    {
+                        network.send(stateMessage);
+                    }                        
+
+                    senderQueue.heartBeatCounter = 0;
+                    lastMessage = stateMessage;
+
+                } else if( senderQueue.heartBeatCounter++ > maxHeartBeatCounterValue) {
+                    
+                    senderQueue.heartBeatCounter = 0;
+
+                    if(network.ready)
+                    {
+                        network.send('h');
+                        console.log( "SENT:h");
+                    }
+                    else {
+                        CreateWebSocket();
+                    }
+                }                                                                   
+            }
+
+
+            scene.runAction(RepeatForever(Sequence([DelayTime(sendInterval), CallFunc(SendData)])));
+                                                                                      
+            return senderQueue;
+        }
+        
+        var maxDiffPercent = 0.04;
+        var maxSpeed = 1;
+        var maxDiffValue = 1023*maxSpeed*maxDiffPercent;
+        
+        var lastSpeed = 0;
+        
+        var lastDir   = 0;
+        var lastSpeed = 0;
+        
+        var maxTHR = 800;
+        var minTHR = 150;
+
+        function SetPlaneSpeed( speed, dir) {
+            
+            rc_chanels[2] = parseInt(speed*500+1500); // THR
+            rc_chanels[3] = parseInt(dir*500+1500); // ROTATE
+
+            console.log( "THR: " + rc_chanels[2] + " ROTATE:" + rc_chanels[3]);
+
+            // console.log( "speed: " + speed + " dir:" + dir);
+            ROTATE = dir*3.14;
+            THR    = parseInt( (maxTHR - minTHR) * speed + minTHR);
+            //SetDebugString("THR:"+THR);
+        }
+        
+        function CreateFilter( rate ) {
+            
+            var filter = {};
+            filter._weightNew = rate;
+            filter._weightOld = (1-rate);
+            filter._last    = null;
+            
+            filter._initedgetoutput = function(newValue) {
+                if(isNaN(newValue)) return this._last;
+                this._last = newValue*this._weightNew + this._last*this._weightOld;
+                return this._last;
+            }
+            
+            filter.getoutput = function(newValue) {
+                this.getoutput = this._initedgetoutput;
+                this._last = newValue;
+                return newValue;
+            }
+            
+            return filter;
+        }
+        
+        function EnableDeviceMotionControl( _controledObject ) {
+            
+            var controledObject = _controledObject;
+            
+            var g = 9.8*0.6;
+            
+            var xFilter = CreateFilter(0.1);
+            var yFilter = CreateFilter(0.1);
+            
+            var gkSpeed = -1;
+            var gkDir   = -1;
+            
+            if( Sys.isIOS ) {
+                gkDir   = 1;
+                gkSpeed = 1;
+            }
+            
+            var dotStatic = CCSprite.create( "dot.png");
+            scene.addChild(dotStatic);
+            dotStatic.setOpacity(0.5);
+
+            dotStatic.layout = function(w,h)
+            {
+                dotStatic.setPosition( scene.width/2, scene.height/2);
+            }
+            dotStatic.layout(scene.width,scene.height);
+
+            var dot = CCSprite.create( "dot.png");
+            scene.addChild(dot);
+            dot.setOpacity(0.5);
+
+            dot.layout = function(w,h){
+                dot.setPosition( scene.width/2, scene.height/2);
+            }
+            dot.layout(scene.width,scene.height);
+
+            pitch_indicator = CCLayer.create();
+            pitch_indicator.setContentSize(CCSizeMake(scene.width,1));
+            scene.addChild(pitch_indicator);
+            pitch_indicator.setColor("#224488");
+            pitch_indicator.layout = function(w,h) {
+                pitch_indicator.setContentSize(CCSizeMake(scene.width,1));
+            }
+            pitch_indicator.layout(scene.width,scene.height);
+            pitch_indicator.setPosition( scene.width/2, dot.y);
+
+            var aim_pitch_indicator = CCLayer.create();
+            scene.addChild(aim_pitch_indicator);
+            aim_pitch_indicator.setColor("#ffffff");
+            aim_pitch_indicator.layout = function(w,h) {
+                aim_pitch_indicator.setContentSize(CCSizeMake(scene.width,1));
+            }
+            aim_pitch_indicator.layout(scene.width,scene.height);
+            aim_pitch_indicator.setPosition( scene.width/2, dot.y);
+
+            var lastTimeOutOfRange = false;
+
+            function motionHandler(event) {
+                
+                if( !MOTORS_ON ) 
+                {
+                    dot.setPosition( scene.width/2, scene.height/2);
+                    aim_pitch_indicator.setPosition( scene.width/2, dot.y);
+                    
+                    AIM_PITCH = 0;
+                    AIM_ROLL  = 0;
+                    
+                    return;
+                }
+                
+                var accGravity = event.accelerationIncludingGravity;
+                
+                var x = xFilter.getoutput(accGravity.x);
+                var y = yFilter.getoutput(accGravity.y);
+                
+                var standRange = 0.5;
+                
+                var accScale = 0.5;
+                
+                x *= accScale;
+                y *= accScale;
+                
+                if( Math.abs(x) < standRange ) {
+                    x = 0;
+                }
+                
+                if( Math.abs(y) < standRange ) {
+                    y = 0;
+                }
+                
+                var r = 2.6;
+                var rr = r*r;
+                var x1, y1;
+                var outOfRange = false;
+                
+                if( x*x + y*y > rr ) {
+                    outOfRange = true;
+                    
+                    if( y !== 0 ) {
+                        y1 = Math.sqrt( rr/((x/y)*(x/y)+1) );
+                        x1 = y1*Math.abs(x/y);
+                    } else {
+                        y1 = 0;
+                        x1 = r;
+                    }
+                    
+                    x1 *= Math.sign(x);
+                    y1 *= Math.sign(y);
+                }
+                
+                if( outOfRange )
+                {
+                    x = x1;
+                    y = y1;
+                    
+                    if( !lastTimeOutOfRange )
+                    {
+                        hit_bound();
+                    }
+                }
+                
+                lastTimeOutOfRange = outOfRange;
+
+                x = parseInt(100*x);
+                x /= 100.0;
+                y = parseInt(100*y);
+                y /= 100.0;
+                
+                rc_chanels[0] = parseInt((y/r)*500+1500); // PITCH
+                rc_chanels[1] = parseInt((-x/r)*500+1500); // ROLL
+
+                //console.log("x:%d y:%d", rc_chanels[0], rc_chanels[1]);
+                
+                AIM_PITCH = parseInt((-y/10.0)*100+0.5)/100.0;
+                AIM_ROLL  = parseInt((x/10.0)*100+0.5)/100.0;
+                
+                dot.setPosition( scene.width/2 + x*50, scene.height/2 - y*50 );
+                aim_pitch_indicator.setPosition( scene.width/2, dot.y);
+            }
+            
+            if (window.DeviceMotionEvent) {
+                window.addEventListener("devicemotion", motionHandler, false);
+                return true;
+            }
+            
+            return false;
+        }
+        
+        function AddIpConfigure(scene) {
+            
+            var label = createLabelDefaultStyle( planeIp, scene.width/2, 18);
+            scene.addChild(label);
+            label.setColor(ccc3( 108, 170, 255));
+            label.setContentSize( CCSizeMake(scene.width, 32));
+            label.setTextAlign("center");
+            
+            var inputLayer = CCLayer.create();
+            inputLayer.setContentSize(CCSizeMake( scene.width, 32));
+            inputLayer.setAnchorpoint( 0, 0);
+            inputLayer.setPosition( 0, 0);
+            inputLayer.setColor(ccc3(111,222,111));
+            inputLayer.setVisible(false);
+            
+            label.setTouchEnabled(true);
+            label.touchEnded = function( x, y)
+            {
+                label.setVisible(false);
+                inputLayer.setVisible(true);
+                scene.addChild(inputLayer);
+                
+                inputLayer.element.innerHTML = "<input id='name_input' placeholder='' style='text-align:center;width:100%;height:32px;background:Transparent;color:#ffffff;font-size:16;border:none;'></input>";
+                
+                function quit()
+                {
+                    if(inputLayer.isVisible())
+                    {
+                        label.setString(e.value);
+                        label.setVisible(true);
+                        
+                        planeIp = e.value;
+                        
+                        CreateWebSocket();
+                        
+                        inputLayer.setVisible(false);
+                        inputLayer.removeFromParent();
+                    }
+                }
+                
+                var e = document.getElementById('name_input');
+                e.value =  label.getString();
+                e.focus();
+                
+                e.onblur = function() {
+                    quit();
+                };
+
+                e.onkeypress =function() {
+                    if( event.keyCode == 13 ) {
+                        quit();
+                    }
+                }
+            }
+        }
+
+        var debugLabel = null;
+        function CreateDebugInfoLabel(scene) {
+            debugLabel = createLabelDefaultStyle( "Version:"+version, scene.width/2,  30);
+            scene.addChild(debugLabel);
+            //debugLabel.setContentSize(CCSizeMake(scene.width,20));
+            debugLabel.setColor("#ffffff");
+            debugLabel.setTextAlign("center");
+            debugLabel.setOpacity(0);
+
+            debugLabel.layout = function(w,h)
+            {
+                debugLabel.setContentSize(CCSizeMake(scene.width,20));
+                debugLabel.setPosition(scene.width/2,  30);
+            }
+            debugLabel.layout(scene.width,scene.height);
+        }
+        
+        function SetDebugString(str) {
+            debugLabel.setString(str);
+            debugLabel.setOpacity(0.6);
+        }
+        
+        function AddStartUpTip(scene)
+        {    
+            var tipLabel = createLabelDefaultStyle( "请关闭自动锁屏并将设备锁定为竖屏", scene.width/2, scene.height/2);
+            scene.addChild(tipLabel);
+            tipLabel.setColor("#ffffff");
+            tipLabel.setTextAlign("center");
+            tipLabel.setOpacity(0.0);
+
+            tipLabel.layout = function(w,h){
+                tipLabel.setContentSize(CCSizeMake(scene.width,20));
+                tipLabel.setPosition(scene.width/2, scene.height/2);
+            };
+            tipLabel.layout( scene.width, scene.height);     
+
+            tipLabel.runAction(Sequence([FadeTo(0.5,0.6),DelayTime(3),FadeOut(0.5),CallFunc(function() {
+                                                                                           tipLabel.removeFromParent();
+                                                                                           })]));
+        }
+        
+        function VotageToPercent(votage) {
+            
+            var votages = [4.22, 4.15, 4.14, 4.12, 4.10, 4.08, 4.05, 4.03, 3.97, 3.93, 3.90, 3.87, 3.84, 3.81, 3.79, 3.77, 3.76, 3.76, 3.74, 3.73, 3.72, 3.71, 3.69, 3.66, 3.65, 3.64, 3.63, 3.61, 3.59, 3.58];
+            
+            var energyLeft = [100, 99, 97, 95, 92, 90, 87, 85, 80, 75, 70, 65, 60, 55, 50, 45, 42, 40, 35, 30, 25, 20, 15, 12, 10, 8, 5, 3, 1, 0];
+            
+            var index = votages.length - 1;
+            for ( ; index >= 0; index--) {
+                if( votages[index] > votage) break;
+            };
+            
+            if( index >= (votages.length-1) ) {
+                return 0;
+            }
+            
+            if( index < 0 ) {
+                return 100;
+            }
+            
+            var vRange = votages[index] - votages[index+1];
+            var vOff   = votages[index] - votage;
+            
+            var energyRange = energyLeft[index] - energyLeft[index+1];
+            var energyOff   = energyRange * vOff/vRange;
+            
+            return energyLeft[index]-energyOff;
+        }
+        
+        function AddBattery(scene) {
+            
+            batteryLayer = CCLayer.create();
+            batteryLayer.setContentSize(CCSizeMake( 60, 32));
+            batteryLayer.setAnchorpoint( 0, 0);
+            batteryLayer.setPosition( 16, 42);
+            batteryLayer.element.style.borderColor = "#eeeeee";
+            batteryLayer.element.style.borderStyle = "solid";
+            batteryLayer.element.style.borderRadius = "5px";
+            scene.addChild(batteryLayer);
+            
+            batteryLayer._s = 1;
+
+            var batteryTypeLabel = CCLabel.create(""+batteryLayer._s+"S");
+            batteryTypeLabel.setContentSize(CCSizeMake( 60, 32));
+            batteryTypeLabel.setFontSize(23);
+            batteryTypeLabel.setFontWeight("bold");
+            batteryTypeLabel.setOpacity(0.66);
+            batteryLayer.addChild(batteryTypeLabel);
+            batteryTypeLabel.setAnchorpoint( 0, 0);
+            batteryTypeLabel.setPosition(0, 0); //scrollView.contentHeight);
+            batteryTypeLabel.setColor("ffffff");
+            batteryTypeLabel.setTextAlign("center");
+            batteryTypeLabel.setDepth(2);
+
+            batteryLayer.setCellCount = function(n)
+            {
+                batteryLayer._s = n;
+                batteryTypeLabel.setString(""+batteryLayer._s+"S");
+            };
+                                       
+            var element1 = CCLayer.create();
+            element1.setContentSize(CCSizeMake( 3, 10));
+            element1.setAnchorpoint( 0, 0.8);
+            element1.setPosition( batteryLayer.width, batteryLayer.height/2);
+            element1.setColor("#eeeeee");
+            element1.element.style.borderColor = "#eeeeee";
+            element1.element.style.borderStyle = "solid";
+            element1.element.style.borderRadius = "3px";
+            batteryLayer.addChild(element1);
+            
+            var energyLayer = CCLayer.create();
+            energyLayer.setContentSize(CCSizeMake( 60, 32));
+            energyLayer.setAnchorpoint( 0, 0);
+            energyLayer.setPosition( 0, 0);
+            energyLayer.setColor(ccc3(88,255,88));
+            energyLayer.setOpacity(0.6);
+            batteryLayer.addChild(energyLayer);
+            
+            var powerFilter = CreateFilter(0.2);
+            
+            batteryLayer._powerPercent = 0;
+            
+            var lowPowerThreshold = 3;
+            
+            batteryLayer.setBatteryPower = function(percent) {
+                
+                var percentFiltered = powerFilter.getoutput(percent);
+                
+                if(percentFiltered>100) { percentFiltered = 100; }
+                if(percentFiltered<0) { percentFiltered = 0;}
+                
+                if( percentFiltered < lowPowerThreshold ) {
+                    energyLayer.setColor(ccc3( 255, 0, 0));
+                } else {
+                    energyLayer.setColor(ccc3(88,255,88));
+                }
+                
+                energyLayer.setContentSize(CCSizeMake( 60*percentFiltered/100.0, 32));
+                
+                batteryLayer._heartbeatCounter = 0;
+                
+                batteryLayer._powerPercent = percentFiltered;
+            }
+            
+            batteryLayer.getPowerByPercent = function() {
+                return batteryLayer._powerPercent;
+            }
+            
+            batteryLayer.isLowPower = function() {
+                return batteryLayer._powerPercent < lowPowerThreshold;
+            }
+            
+            batteryLayer.setOpacity(0);
+            
+            function EnableConnectionChecking() {
+                
+                batteryLayer._heartbeatCounter = 0;
+                
+                function CountHeartbeat() {
+                    
+                    if( ++batteryLayer._heartbeatCounter == 5 ) {
+                        network.ready = false;
+                        rainbow.show(true);
+                        batteryLayer.runAction(FadeOut(1));
+                        SetDebugString("心跳超时");
+                        network.close();
+                        batteryLayer._heartbeatCounter = 0;
+                    }
+                }
+                
+                batteryLayer.runAction(RepeatForever(Sequence([DelayTime(1),CallFunc(function() {
+                                                                                     if(network.ready)
+                                                                                     CountHeartbeat();
+                                                                                     })])));
+            }
+            
+            EnableConnectionChecking();
+            
+            batteryLayer.destory = function () {
+                if( typeof(batteryLayer) !== 'undefined' ) {
+                    batteryLayer.stopAllActions();
+                    batteryLayer.removeFromParent();
+                    batteryLayer = undefined;
+                }
+            }
+            
+            return batteryLayer;
+        }
+        
+        function CreateSlider(onchange, minValue, maxValue, jumpValue) {
+            
+            jumpValue = jumpValue || (maxValue-minValue)*0.05;
+            
+            var slider = CCLayer.create();
+            slider.setContentSize(CCSizeMake( 160, 30));
+            slider.setColor("#1e5799");
+            slider.setTouchEnabled(true);
+            slider.element.style.borderRadius = "5px";
+            
+            var sliderBtnSize = 13;
+            slider._floatValue = 0;
+            slider._value = (maxValue-minValue)*slider._floatValue + minValue;
+            
+            slider.setValue = function(value) {
+                slider._floatValue =  (value-minValue)*1.0/(maxValue-minValue);
+                slider._value = value;
+                slider._sliderButton.setPosition(sliderBtnSize/2+slider._floatValue*(slider.width-sliderBtnSize), slider.height/2);
+            }
+            
+            slider.touchEnded = function( x, y) {
+                
+                if( x > sliderBtnSize/2 + (slider.width-sliderBtnSize)*slider._floatValue ) {
+                    slider._floatValue += jumpValue/(maxValue-minValue);
+                } else if( x < sliderBtnSize/2 + (slider.width-sliderBtnSize)*slider._floatValue ) {
+                    slider._floatValue -= jumpValue/(maxValue-minValue);
+                }
+                
+                if(slider._floatValue > 1 ) {
+                    slider._floatValue = 1;
+                    slider._value = maxValue;
+                }
+                
+                if(slider._floatValue < 0 ) {
+                    slider._floatValue = 0;
+                    slider._value = minValue;
+                }
+                
+                slider._sliderButton.setPosition(sliderBtnSize/2+slider._floatValue*(slider.width-sliderBtnSize), slider.height/2);
+                slider._value = (maxValue-minValue)*slider._floatValue + minValue;
+                
+                onchange(slider._value);
+            }
+            
+            var sliderTrack = CCLayer.create();
+            sliderTrack.setContentSize(CCSizeMake( slider.width-sliderBtnSize, 1));
+            sliderTrack.setPosition( (slider.width-sliderBtnSize)/2+sliderBtnSize/2, slider.height/2);
+            sliderTrack.setColor("#ffffff");
+            slider.addChild(sliderTrack);
+            
+            var sliderButton = CCLayer.create();
+            sliderButton.setContentSize(CCSizeMake( sliderBtnSize, sliderBtnSize));
+            sliderButton.setPosition(sliderBtnSize/2+slider._floatValue*(slider.width-sliderBtnSize), slider.height/2);
+            sliderButton.setColor("#ffffff");
+            sliderButton.element.style.borderRadius = "6.5px";
+            slider.addChild(sliderButton);
+            slider._sliderButton = sliderButton;
+            
+            slider.addMark = function(value) {
+                
+                var floatValue =  (value-minValue)*1.0/(maxValue-minValue);
+                
+                var sliderMark = CCLayer.create();
+                sliderMark.setContentSize(CCSizeMake( 1, 2));
+                sliderMark.setColor("#ffffff");
+                sliderMark.setPosition(sliderBtnSize/2+floatValue*(slider.width-sliderBtnSize), slider.height/2-2);
+                slider.addChild(sliderMark);
+                
+                return sliderMark;
+            }
+            
+            
+            return slider;
+        }
+        
+        function AddSettingsLayer(scene) {
+            
+            var settingButtonPosConst = 32;
+            
+            settingsLayer = CCLayer.create();
+            settingsLayer.setAnchorpoint( 0, 1);            
+            scene.addChild(settingsLayer);
+            settingsLayer.setDepth(9);
+
+            
+            //settingsLayer.setTouchEnabled(true);
+            settingsLayer.element.style.overflow="hidden";
+            
+            var versionLabel = createLabelDefaultStyle( "version:"+version, settingsLayer.width/2, settingsLayer.height-26);
+            settingsLayer.addChild(versionLabel);
+            versionLabel.setColor("#2f69aa");
+            versionLabel.setTextAlign("center");
+
+            versionLabel.layout = function(w,h)
+            {
+                versionLabel.setContentSize(CCSizeMake(scene.width,20));
+                versionLabel.setPosition(settingsLayer.width/2, settingsLayer.height-26);
+            }
+            versionLabel.layout( settingsLayer.width, settingsLayer.height);
+
+            settingsLayer.setVisible(false);
+            settingsLayerBg = CCLayer.create();
+            settingsLayerBg.setContentSize(CCSizeMake( 0, 0));
+            settingsLayerBg.setPosition( 0, settingsLayer.height);
+            settingsLayerBg.element.style.borderRadius = "5px";
+            scene.addChild(settingsLayerBg);
+            settingsLayerBg.setOpacity(0.1);
+            settingsLayerBg.setColor(ccc3( 255, 255, 255));
+            settingsLayerBg.setTouchEnabled(true);
+            
+            SettingsButtonTouched = function() {
+                
+                // ignore touches when gear rotating
+                if(settingsButton._runing) return;
+                settingsButton._runing = true;
+                
+                if( endV === 0 ) {
+                    settingsLayer.setVisible( false );
+                }
+                
+                settingsLayer.runAction(
+                                        Sequence(
+                                                 [ChangeValue( 0.4, startV, endV-startV, function(v) {
+                                                              settingsLayerBg.setContentSize(CCSizeMake( settingsLayer.width*v, settingsLayer.height*v) );
+                                                              settingsLayerBg.setPosition( settingButtonPosConst+settingsLayer.width*v/2, settingButtonPosConst+settingsLayer.height - settingsLayer.height*v/2);
+                                                              settingsButton.setRotation(v*270);
+                                                              }), CallFunc(function() {
+                                                                           
+                                                                           if( endV === 1 ) {
+                                                                           settingsLayer.setOpacity(0.1);
+                                                                           settingsLayer.setVisible(true);
+                                                                           settingsLayer.runAction(FadeIn(0.2));
+                                                                           }
+                                                                           
+                                                                           var e = startV;
+                                                                           startV = endV;
+                                                                           endV   = e;
+                                                                           
+                                                                           settingsButton._runing = false;
+                                                                           })]
+                                                 )
+                                        );
+                                        
+            }
+            
+            var startV = 0;
+            var endV   = 1;
+            var settingsButton = createButton( SettingsButtonTouched, "settingsBtn.png");
+            settingsButton._runing = false;
+            
+            settingsLayerBg.layout = function(w,h) {
+                
+                settingsLayer.setContentSize(CCSizeMake( scene.width-2*settingButtonPosConst, scene.height-2*settingButtonPosConst));
+                settingsLayer.setPosition( settingButtonPosConst, scene.height-settingButtonPosConst);
+
+                if( !settingsButton._runing ) {
+                    if( settingsLayer.isVisible() ) {
+                        settingsLayerBg.setContentSize(CCSizeMake( settingsLayer.width, settingsLayer.height) );
+                        settingsLayerBg.setPosition( settingButtonPosConst+settingsLayer.width/2, settingButtonPosConst+settingsLayer.height - settingsLayer.height/2);
+                    } else {
+                        settingsLayerBg.setContentSize(CCSizeMake( 0, 0));
+                        settingsLayerBg.setPosition( 0, h);
+                    }
+                }
+            };
+
+            settingsLayerBg.layout(scene.width,scene.height);
+            
+            scene.addChild(settingsButton);
+            settingsButton.setScale(0.5);
+            settingsButton.setDepth(10);
+            settingsButton.layout = function(w,h){
+                settingsButton.setPosition( settingButtonPosConst, scene.height-settingButtonPosConst);
+            }
+            settingsButton.layout(scene.width,scene.height);
+            
+        }
+        
+        function CreateQADialog(scene) {
+
+            var screenScale = 1;
+        
+            if( window.innerWidth < 375 ) {
+                screenScale = window.innerWidth/375;
+            }
+
+            if( window.innerHeight > 812 ) {
+                screenScale = window.innerHeight/812;
+            }
+
+            var lineHeight = parseInt(68*screenScale);
+
+            QALayer = CCLayer.create();
+            scene.addChild(QALayer);       
+            QALayer.setDepth(15);
+            QALayer.setVisible(false);
+            QALayer.layout = function(w,h) {
+                QALayer.setContentSize(CCSizeMake((scene.width), (scene.height)));
+                QALayer.setPosition(scene.width/2, scene.height/2);
+                for (var i = 0; i < QALayer.childs.length; i++) {
+                    if( typeof(QALayer.childs[i].layout) === "function" ) {
+                        QALayer.childs[i].layout( QALayer.width, QALayer.height);
+                    }
+                };
+            }
+            QALayer.layout( scene.width, scene.height);
+
+            QALayer.useLightContentStyle = function() {
+                QALayer.isLightContentStyle = true;
+                questionLabel.setBgOpacity(0.1);
+                questionLabel.setBgColor("#ffffff");
+            }
+
+            var questionLabel = createLabelDefaultStyle("", scene.width / 2, scene.height / 2 - lineHeight);
+            QALayer.addChild(questionLabel);
+            //questionLabel.setContentSize(CCSizeMake(scene.width, lineHeight - 1));
+            questionLabel.setTextAlign("center");
+            questionLabel.setFontSize( parseInt(28*screenScale) );
+            questionLabel.setFontWeight("bold");
+
+            if(QALayer.isLightContentStyle) {
+                questionLabel.setBgOpacity(0.1);
+                questionLabel.setBgColor("#ffffff");
+            } else {
+                questionLabel.setOpacity(0.8);
+                questionLabel.setBgColor("#1e5799");
+            }
+            
+            questionLabel.setColor("#FFFFFF");
+            questionLabel.setVisible(false);
+            questionLabel.setDepth(20);
+            
+            QALayer.showDialog = function ( questionText, selectionOptions, callback, callback1) {
+                
+                // callback will be callled when the dialog disapear after the animation finished
+                // callback1 wiil be called just when user click a selection option
+
+                function getBeginY()
+                {
+                    var beginY = scene.height/2;
+
+                    if (typeof (selectionOptions) === "object") {
+                        beginY = QALayer.height/2 - (selectionOptions.length * lineHeight) / 2;
+                    }
+
+                    return beginY;
+                }
+
+                questionLabel.setVisible(true);
+                questionLabel.setString(questionText);
+
+                QALayer.stopAllActions();
+                QALayer.setVisible(true);
+
+                if( typeof(questionLabel._answers) !== 'undefined' ) {
+                    for (var i = questionLabel._answers.length - 1; i >= 0; i--) {
+                        questionLabel._answers[i].removeFromParent();
+                    }
+                }
+
+                var moveInDirection = 1;
+
+                questionLabel.stopAllActions();
+                questionLabel.setOpacity(0);
+                questionLabel.runAction(FadeIn(0.6));
+                questionLabel._answers = [];
+                questionLabel.element.style["white-space"] = "nowrap";
+                questionLabel.setFontSize( parseInt(28*screenScale) );
+
+                questionLabel.layout = function(w,h) {
+                    var beginY = getBeginY();
+                    questionLabel.setContentSize(CCSizeMake(w, lineHeight-1));
+                    questionLabel.setPosition( w/2, beginY);
+                    questionLabel.adjustTextLength(questionLabel.width);
+                }
+                questionLabel.layout(QALayer.width, QALayer.height);
+
+                function DefaultDisapearAnimation(index) {
+                    
+                    questionLabel.runAction(FadeOut(0.6));
+
+                    for (var i = 0; i < selectionOptions.length; ++i) {
+
+                        var fadeAction = questionLabel._answers[i].fadeAction;
+                        if( typeof(fadeAction) !=='undefined' ) {
+                            questionLabel._answers[i].stopAction(fadeAction);
+                        }
+
+                        questionLabel._answers[i].touchEnded = null;
+
+                        if (index != i) {
+                            questionLabel._answers[i].runAction(Sequence([FadeOut(0.6), Remove()]));
+                        } else {
+                            questionLabel._answers[i].runAction(Sequence([FadeTo(0.6, 1), FadeOut(0.6), CallFunc(function () {
+                                
+                                QALayer.setVisible(false);
+
+                                if (callback)
+                                    callback(index);
+
+                            }), Remove()]));
+                        }
+                    }
+                }
+
+                QALayer.__showRightAnswer = false;
+
+                QALayer.onlyShowRightAnswer = function() {
+                    QALayer.__showRightAnswer = true;
+                }
+
+                function RightWrongDisapearAnimation(index, rightIndex) {
+                    
+                    var showResultTime = 0.2;
+                    var keepTime = index == rightIndex ? 1.0 : 3.0;
+                    var fadeOutTime = 0.5;
+
+                    questionLabel.runAction(Sequence([ DelayTime(keepTime+showResultTime), FadeOut(fadeOutTime)]));
+
+                    for (var i = 0; i < selectionOptions.length; ++i) {
+
+                        var fadeAction = questionLabel._answers[i].fadeAction;
+                        if( typeof(fadeAction) !=='undefined' ) {
+                            questionLabel._answers[i].stopAction(fadeAction);
+                        }
+
+                        questionLabel._answers[i].touchEnded = null;
+
+                        if ( i == index && index != rightIndex && !(QALayer.__showRightAnswer) ) {
+
+                            // touched index not correct answer then show the wrong anamation
+                            var wrongAnimation = Spawn([ TintTo( showResultTime, "#aa1e1e", true) , FadeTo( showResultTime, 0.9, true)]); //
+                            questionLabel._answers[i].runAction(Sequence([ wrongAnimation, DelayTime(keepTime),FadeOut(fadeOutTime), Remove()]));
+                            
+                        } else if( i == rightIndex ) {
+
+                            // high light the right answer
+                            var rightAnimation = Spawn([ TintTo( showResultTime, "#1eaa1e", true), FadeTo( showResultTime, 0.9, true)]); //
+                            questionLabel._answers[i].runAction(Sequence([ rightAnimation, DelayTime(keepTime), FadeOut(fadeOutTime), CallFunc(function () {
+                            
+                                QALayer.setVisible(false);
+
+                                if (callback)
+                                    callback(index);
+                            
+                            }), Remove()]));
+
+                        } else {
+                            questionLabel._answers[i].runAction(Sequence([ DelayTime(keepTime+showResultTime), FadeOut(fadeOutTime), Remove()]));
+                        }
+                    }
+                }
+
+                function onSelect(index) {
+
+                    var rightIndex = null;
+
+                    if(callback1)
+                        rightIndex = callback1(index);
+
+                    if( rightIndex != null )
+                        RightWrongDisapearAnimation( index, rightIndex);
+                    else
+                        DefaultDisapearAnimation(index);
+
+                    QALayer.__showRightAnswer = false;
+                }
+
+                if (typeof (selectionOptions) === "object" && selectionOptions.length > 0) {
+
+                    for (var i = 0; i < selectionOptions.length; ++i) {
+
+                        moveInDirection *= -1;
+
+                        var answerLabel = createLabelDefaultStyle( selectionOptions[i], QALayer.width / 2, 0);
+
+                        QALayer.addChild(answerLabel);
+
+                        answerLabel.setContentSize(CCSizeMake(QALayer.width, lineHeight - 1));
+                        answerLabel.setTextAlign("center");
+
+                        if (QALayer.isLightContentStyle) {
+                            answerLabel.setBgOpacity(0.1);
+                            answerLabel.setBgColor("#ffffff");
+                        } else {
+                            answerLabel.setOpacity(0.8);
+                            answerLabel.setBgColor("#1e5799");
+                        }
+
+                        answerLabel.setColor("#FFFFFF");
+                        answerLabel.setDepth(20);
+                        answerLabel.setFontSize( parseInt(23*screenScale) );
+                        answerLabel.setFontWeight("bold");
+                        answerLabel.setContentSize(CCSizeMake(QALayer.width, lineHeight - 1));
+                        answerLabel.setPosition(scene.width / 2 - moveInDirection * scene.width, getBeginY() + lineHeight * (i + 1));
+                        answerLabel.runAction(Sequence([DelayTime(1 + i * 0.3), Ease(ease.easeOutBack, MoveBy(0.6, moveInDirection * scene.width, 0))]));
+                        answerLabel.adjustTextLength(answerLabel.width);
+
+                        answerLabel.layout = function( w, h) {
+                            var beginY = getBeginY();
+                            this.setContentSize(CCSizeMake(w, lineHeight - 1));
+                            this.setPosition( w/2, beginY + lineHeight * (this._index + 1));
+                            this.adjustTextLength(this.width);
+                        }
+                        
+                        if(!QALayer.isLightContentStyle) {
+                            var fadeAction = RepeatForever(Sequence([DelayTime(i * 0.4), FadeIn(0.2, 1), FadeTo(0.4, 0.6), DelayTime(2 - i * 0.4)]));
+                            answerLabel.fadeAction = fadeAction;
+                            answerLabel.runAction(fadeAction);
+                        }
+                        
+                        answerLabel._index = i;
+                        answerLabel.setTouchEnabled(true);
+                        answerLabel.touchEnded = function (x, y) {
+                            onSelect(this._index);
+                        }
+                        questionLabel._answers.push(answerLabel);
+                    }
+                }
+
+                var need_disapear = false;
+                var disapear_time = 2;
+
+                if ((!selectionOptions)) {
+                    need_disapear = true;
+                }
+
+                if ( typeof (selectionOptions) === "number" && selectionOptions > 0 ) {
+                    disapear_time = selectionOptions;
+                    need_disapear = true;
+                }
+
+                QALayer.disapear = function() {
+                    questionLabel.runAction(Sequence([FadeOut(0.6), Hide()]));
+                }
+                
+                if (need_disapear) {
+                    questionLabel.runAction(Sequence([DelayTime(disapear_time), FadeOut(0.6), Hide(), CallFunc(function () {
+                        QALayer.setVisible(false);
+                        if (typeof (callback) === "function") {
+                            callback();
+                        }
+                    })]));
+                }
+
+            }
+
+            return QALayer;
+        }
+
+        function _Hide() {
+            var obj = TimeAction(0);
+            function step(p) {
+                obj.target.setOpacity(0.01);
+            }
+            obj.step  = step;
+            return obj;
+        }
+        
+        function _Show() {
+            var obj = TimeAction(0);
+            function step(p) {
+                obj.target.setOpacity(1);
+            }
+            obj.step  = step;
+            return obj;
+        }
+        
+        function AddLEDSwitch(scene) {
+            
+            ledSwitch = CCLayer.create();
+
+
+            ledSwitch.layout = function(w,h){
+                ledSwitch.setContentSize(CCSizeMake( 32, 32));
+                ledSwitch.setPosition( scene.width-32, scene.height-32);
+            };
+
+            ledSwitch.layout(scene.width,scene.height);
+            
+            ledSwitch.setColor("#1e5799");
+            
+            ledSwitch.element.style.borderRadius = "18px";
+            ledSwitch.element.style.borderColor  = "#fff";
+            ledSwitch.element.style.borderWidth  = "3px";
+            ledSwitch.element.style.borderStyle  = "solid";
+            
+            scene.addChild(ledSwitch);
+            
+            ledSwitch.setTouchEnabled(true);
+            
+            ledSwitch._on = false;
+            
+            ledSwitch.reset = function() {
+                ledSwitch._on = false;
+                ledSwitch.stopAllActions();
+                ledSwitch.setOpacity(1);
+            }
+            
+            ledSwitch.touchEnded = function(x,y)
+            {
+                if(!network.ready) return;
+                
+                network.send("刷新数据");
+                return;
+                
+                ledSwitch._on = !ledSwitch._on;
+                if( ledSwitch._on ) {
+                    ledSwitch.stopAllActions();
+                    // ledSwitch.runAction(RepeatForever(Sequence([ _Show(), DelayTime(0.5), _Hide(), DelayTime(0.5)])));
+                    ledSwitch.runAction( RepeatForever( Sequence( [ Ease( ease.easeInCubic,FadeOut(0.5)), Ease( ease.easeOutCubic, FadeIn(0.5))]) ) );
+                    network.send("FIX_ALTITUDE_MODE_ON#1");
+                } else {
+                    ledSwitch.stopAllActions();
+                    ledSwitch.setOpacity(1);
+                    network.send("FIX_ALTITUDE_MODE_ON#0");
+                }
+            }
+            
+        }
+        
+        function AddDataViewer( scene, pos, size) {
+            
+            var dataViewerLayer = CCLayer.create();
+            dataViewerLayer.setContentSize(size);
+            dataViewerLayer.setAnchorpoint( 0, 0);
+            dataViewerLayer.setPosition( pos.x, pos.y);
+            dataViewerLayer.element.style.borderColor = "#eeeeee";
+            dataViewerLayer.element.style.borderStyle = "solid";
+            dataViewerLayer.element.style.borderRadius = "5px";
+            scene.addChild(dataViewerLayer);
+            
+            var valueLayer = CCLayer.create();
+            valueLayer.setContentSize(CCSizeMake(size.width/2,size.height));
+            valueLayer.setAnchorpoint( 0, 0);
+            valueLayer.setPosition( size.width/2, 0);
+            valueLayer.setColor(ccc3(88,255,88));
+            valueLayer.setOpacity(0.6);
+            dataViewerLayer.addChild(valueLayer);
+            
+            dataViewerLayer._valueLayer = valueLayer;
+            dataViewerLayer._size = size;
+            
+            dataViewerLayer.setValue = function(value) {
+                if( value >= 0 ) {
+                    valueLayer.setPosition( dataViewerLayer._size.width/2, 0);
+                    dataViewerLayer._valueLayer.setContentSize( CCSizeMake( value*dataViewerLayer._size.width/2, size.height));
+                    valueLayer.setColor(ccc3(88,255,88));
+                } else {
+                    valueLayer.setPosition( dataViewerLayer._size.width/2 + value*dataViewerLayer._size.width/2, 0);
+                    dataViewerLayer._valueLayer.setContentSize( CCSizeMake( -value*dataViewerLayer._size.width/2, size.height));
+                    valueLayer.setColor(ccc3(255,22,22));
+                }
+            }
+            
+            dataViewerLayer.setValue(-1);
+            
+            return dataViewerLayer;
+        }
+        
+        function AddAccelGyroDataViewer(scene) {
+            
+            function createOscilloscopeLayer() {
+                
+                var oscilloscopeLayer = CCLayer.create();
+                oscilloscopeLayer.setContentSize( CCSizeMake( scene.width, scene.height));
+                oscilloscopeLayer.setAnchorpoint( 0, 0);
+                oscilloscopeLayer.setPosition( 0, 0);
+                scene.addChild(oscilloscopeLayer);
+                
+                var canvas = document.querySelector('canvas');
+                if (!canvas) {
+                    canvas = document.createElement('canvas');
+                    oscilloscopeLayer.element.appendChild(canvas);
+                }
+                canvas.width  = oscilloscopeLayer.width;
+                canvas.height = oscilloscopeLayer.height;
+                var drawContext = canvas.getContext('2d');
+                
+                oscilloscopeLayer.drawContext = drawContext;
+                
+                var zeroYPos = canvas.height/2;
+                
+                var dataColors = [];
+                var lastValues = [];
+                
+                var t = 0;
+                
+                oscilloscopeLayer.displayMessage = function(message) {
+                    drawContext.clearRect( 0, 0, canvas.width, 36);
+                    drawContext.fillStyle="#eeeeee";
+                    drawContext.fillText( message, 20, 20);
+                }
+                
+                function drawAxis() {
+                    drawContext.beginPath();
+                    drawContext.moveTo( 0,   zeroYPos);
+                    drawContext.lineTo(  oscilloscopeLayer.width, zeroYPos);
+                    drawContext.lineWidth = 1;
+                    drawContext.strokeStyle = "#eeeeee";
+                    drawContext.stroke();
+                }
+                
+                drawAxis();
+                
+                oscilloscopeLayer.onDatas = function( dataArray ) {
+                    
+                    while( dataColors.length < dataArray.length ) {
+                        
+                        dataColors.push( '#'+Math.floor(Math.random()*0xffffff).toString(16) );
+                        
+                        var indexLabel = CCLayer.create();
+                        indexLabel.setContentSize( CCSizeMake( 32, 32));
+                        indexLabel.setAnchorpoint( 0, 0);
+                        indexLabel.setPosition( 42 + dataColors.length*64, 42);
+                        indexLabel.setColor(dataColors[dataColors.length-1]);
+                        
+                        indexLabel.element.style.borderColor = "#eeeeee";
+                        indexLabel.element.style.borderStyle = "solid";
+                        indexLabel.element.style.borderRadius = "5px";
+                        indexLabel.element.innerHTML = (dataColors.length);
+                        
+                        indexLabel._index = dataColors.length-1;
+                        
+                        indexLabel.setTouchEnabled(true);
+                        
+                        indexLabel.touchEnded = function(x,y) {
+                            dataColors[this._index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);
+                            this.setColor(dataColors[this._index]);
+                            this.element.style.borderColor = "#eeeeee";
+                        }
+                        
+                        indexLabel.touchCanceled = function(){
+                            dataColors[this._index] = 'transparent';
+                            this.setColor(dataColors[this._index]);
+                            this.element.style.borderColor = "#eeeeee";
+                        }
+                        
+                        oscilloscopeLayer.addChild(indexLabel);
+                    }
+                    
+                    while( lastValues.length < dataArray.length ) {
+                        lastValues.push(parseInt(dataArray[lastValues.length]));
+                    }
+                    
+                    for (var i = 0; i < dataArray.length; i++) {
+                        
+                        var value = parseInt(dataArray[i]);
+                        
+                        drawContext.beginPath();
+                        
+                        if(t>0)
+                        drawContext.moveTo( t-1, zeroYPos - lastValues[i]);
+                        else
+                        drawContext.moveTo( 0,   zeroYPos - lastValues[i]);
+                        
+                        lastValues[i] = value;
+                        
+                        drawContext.lineTo( t, zeroYPos - value );
+                        
+                        drawContext.lineWidth = 1;
+                        drawContext.strokeStyle = dataColors[i];
+                        drawContext.stroke();
+                    }
+                    
+                    if( ++t > canvas.width ) {
+                        t = 0;
+                        drawContext.clearRect( 0, 0, canvas.width, canvas.height);
+                        drawAxis();
+                    }
+                }
+                
+                return oscilloscopeLayer;
+            }
+            
+            function createBarViewerLayer() {
+                
+                var barViewerLayer = CCLayer.create();
+                barViewerLayer.setContentSize( CCSizeMake( scene.width, scene.height));
+                barViewerLayer.setAnchorpoint( 0, 0);
+                barViewerLayer.setPosition( 0, 0);
+                scene.addChild(barViewerLayer);
+                
+                var dataViewer = [];
+                for(var i=0; i<6; ++i) {
+                    dataViewer.push(AddDataViewer( barViewerLayer, ccp( barViewerLayer.width*0.1, barViewerLayer.height*0.3 + i*(barViewerLayer.height*0.1) ), CCSizeMake( barViewerLayer.width*0.8, 36)));
+                }
+                
+                barViewerLayer.dataViewer = dataViewer;
+                
+                return barViewerLayer;
+            }
+            
+            var viewer = {};
+            
+            var oscilloscopeLayer = createOscilloscopeLayer();
+            var barViewerLayer    = createBarViewerLayer();
+            barViewerLayer.setVisible(false);
+            
+            viewer.onDataMessage = function( message ) {
+                
+                oscilloscopeLayer.displayMessage(message);
+                
+                var accelGyro = message.split(',');
+                
+                if( accelGyro.length == 10 ) {
+                    
+                    barViewerLayer.dataViewer[0].setValue( accelGyro[0]/180.0 );
+                    barViewerLayer.dataViewer[1].setValue( accelGyro[1]/18.0 );
+                    barViewerLayer.dataViewer[2].setValue( accelGyro[2]/18.0 );
+                    
+                    barViewerLayer.dataViewer[3].setValue( accelGyro[3]/250.0 );
+                    barViewerLayer.dataViewer[4].setValue( accelGyro[4]/250.0 );
+                    barViewerLayer.dataViewer[5].setValue( accelGyro[5]/250.0 );
+                }
+                
+                if( accelGyro.length == 6 ) {
+                    barViewerLayer.dataViewer[0].setValue(parseInt(accelGyro[0])/32768.0);
+                    barViewerLayer.dataViewer[1].setValue(parseInt(accelGyro[1])/32768.0);
+                    barViewerLayer.dataViewer[2].setValue(parseInt(accelGyro[2])/32768.0);
+                    barViewerLayer.dataViewer[3].setValue(parseInt(accelGyro[3])/32768.0);
+                    barViewerLayer.dataViewer[4].setValue(parseInt(accelGyro[4])/32768.0);
+                    barViewerLayer.dataViewer[5].setValue(parseInt(accelGyro[5])/32768.0);
+                }
+                
+                oscilloscopeLayer.onDatas(accelGyro);
+            }
+            
+            return viewer;
+        }
+        
+        function createEditableLabel( parent, value, pos, size, change_callback)  {
+            
+            var label = createLabelDefaultStyle( value, pos.x, pos.y);
+            parent.addChild(label);
+            label.setColor("#eeeeee");
+            label.setContentSize( size );
+            label.setTextAlign("center");
+            label.setAnchorpoint( 0, 0);
+            label.setPosition( pos.x, pos.y);
+            
+            var inputLayer = CCLayer.create();
+            inputLayer.setContentSize(size);
+            inputLayer.setAnchorpoint( 0, 0);
+            inputLayer.setPosition( pos.x, pos.y);
+            inputLayer.setColor(ccc3( 111, 222, 111));
+            inputLayer.setVisible(false);
+            
+            label.setTouchEnabled(true);
+            label._id = Math.random()*0xffffff;
+            
+            label.touchEnded = function( x, y)
+            {
+                label.setVisible(false);
+                inputLayer.setVisible(true);
+                parent.addChild(inputLayer);
+                
+                inputLayer.element.innerHTML = "<input id='" + this._id + "' placeholder='' style='text-align:center;width:100%;height:" + size.height + "px;background:Transparent;color:#ffffff;font-size:16;border:none;'></input>";
+                
+                function quit()
+                {
+                    if(inputLayer.isVisible())
+                    {
+                        if( label.getString() != e.value ) {
+                            label.setString(e.value);
+                            change_callback(e.value);
+                        }
+                        
+                        label.setVisible(true);
+                        inputLayer.setVisible(false);
+                        inputLayer.removeFromParent();
+                    }
+                }
+                
+                var e = document.getElementById(this._id);
+                e.value =  label.getString();
+                e.focus();
+                
+                e.onblur = function() {
+                    quit();
+                };
+                
+                e.onkeypress =function() {
+                    if( event.keyCode == 13 ) {
+                        quit();
+                    }
+                }
+                
+            }
+            
+            return label;
+        }
+        
+        function onUpdateVar( var_name, var_value)
+        {
+            if( var_name === "THR" )
+            {
+                THR = parseInt(var_value);
+                
+                var value  =  (THR - minTHR)*1.0 / (maxTHR - minTHR);
+                
+                touchLayer.setCloudPosYByPercent(value);    
+            }
+            else if ( var_name === "MOTORS_ON" )
+            {
+                MOTORS_ON = parseInt(var_value);
+                if( MOTORS_ON )
+                {
+                    touchLayer.unlockMotor();
+                }
+                else
+                {
+                    touchLayer.lockMotor();
+                }
+            }
+            else if( var_name === "MIN_THR" )
+            {
+                minTHR = parseInt(var_value);
+            }
+            else if( var_name === "MAX_THR" )
+            {
+                maxTHR = parseInt(var_value);
+            }
+            else if( var_name === "MAX_ABS_PITCH" )
+            {
+                MAX_ABS_PITCH = parseFloat(var_value);
+            }
+            else if( var_name === "GYRO_STABLE") 
+            {
+                GYRO_STABLE = parseInt(var_value);
+                if( GYRO_STABLE )
+                {
+                    if( typeof(sensorsLayer) !== "undefined" )
+                        sensorsLayer.onReady(var_name);
+                }
+                else
+                {
+                    if( typeof(sensorsLayer) !== "undefined" && (!sensorsLayer.isVisible()) )
+                        sensorsLayer.onopen();
+                }
+            }
+            else if(  var_name === "IMU_STATE" )
+            {
+                var IMU_WAITING_START    = 0;
+                var IMU_WAITING_STABLE   = 1;
+                var IMU_STABLE_TESTING   = 2;
+                var IMU_IS_STABLE        = 3;
+                var IMU_FAILED_STABLE    = 4;
+                
+                IMU_STATE = parseInt(var_value);
+                switch(IMU_STATE)
+                {
+                case IMU_WAITING_START:
+                    network.send("启动");
+                    break;
+
+                case IMU_WAITING_STABLE: //case IMU_STABLE_TESTING:
+                    if( typeof(sensorsLayer) !== "undefined" && (!sensorsLayer.isVisible()) )
+                        sensorsLayer.onopen();
+                    break;
+
+                case IMU_IS_STABLE:
+                    if( typeof(sensorsLayer) !== "undefined" && sensorsLayer.isVisible() )
+                        sensorsLayer.onReady("GYRO_STABLE");
+                    break;
+
+                case IMU_FAILED_STABLE:
+                    QALayer.showDialog( "请校准陀螺仪", 3);
+                    if(typeof(sensorsLayer) !== "undefined" && sensorsLayer.isVisible())
+                        sensorsLayer.close();
+                    break;
+                }
+            }
+        }
+        
+        function onFunction( function_name, paremeter ) {
+            if( function_name === "启动") {
+                SettingsButtonTouched();
+            } else if(function_name === "刷新数据" ) {
+                location.reload();
+            }
+        }
+        
+        function AddDataManager(scene) {
+            
+            var dataManager = {}
+            
+            dataManager.filters = {};
+            dataManager.dict = {};
+            
+            dataManager.filtersEnabled = false;
+            
+            var command_map = {};
+            
+            dataManager.command_map = command_map;
+            
+            var posI = 0;
+            var posJ = 0;
+            
+            function createDataCell( var_name, var_type, var_value) {
+                
+                var ui_width  = 168;
+                var ui_height = 48;
+                var ui_gap    = 10;
+                
+                var beginX    = ( settingsLayer.width - parseInt( settingsLayer.width/(ui_width+ui_gap) )*(ui_width+ui_gap) + ui_gap )/2;
+                var beginY    = 32;
+                
+                var command_ui = CCLayer.create();
+                command_ui.setContentSize( CCSizeMake( ui_width, ui_height));
+                command_ui.setAnchorpoint( 0, 0);
+                command_ui.setPosition( beginX + posI*(ui_width+ui_gap), beginY + posJ*(ui_height+ui_gap) );
+                command_ui.setColor("#1e5799");
+                command_ui.element.style.borderColor = "#eeeeee";
+                command_ui.element.style.borderStyle = "solid";
+                command_ui.element.style.borderRadius = "5px";
+                command_ui.element.innerHTML = "<center>" + ( typeof(dataManager.dict[var_name]) === "undefined" ? var_name : dataManager.dict[var_name] ) + "</center>";
+                command_ui.element.style.overflow = "hidden";
+                
+                settingsLayer.addChild(command_ui);
+                
+                posI++;
+                
+                if( beginX + (posI+1) * (ui_width+ui_gap) > settingsLayer.width ) {
+                    posI = 0;
+                    posJ++;
+                }
+                
+                if( var_value ) {
+                    
+                    if( var_type === "BOOL" ) {
+                        
+                        var onOffInput     = document.createElement('input');
+                        onOffInput.setAttribute('class', "mui-switch mui-switch-animbg");
+                        onOffInput.type    = "checkbox";
+                        onOffInput.checked   = var_value === "0" ? false : true;
+                        onOffInput.style = "margin-top:-4px; position:absolute;left:" + parseInt(ui_width/2-21) + "px";
+                        onOffInput.onclick = function() {
+                            if(network.ready) {
+                                if( this.checked )
+                                network.send( var_name + "#1");
+                                else
+                                network.send( var_name + "#0");
+                            } else {
+                                this.checked = !this.checked;
+                                QALayer.showDialog("请先连接飞机WIFI！");
+                            }
+                        }
+                        
+                        if( Sys.isIOS ) {
+                            
+                            command_ui.setTouchEnabled(true);
+                            
+                            command_ui.touchEnded = function( x, y) {
+                                onOffInput.checked   = !onOffInput.checked;
+                                onOffInput.onclick();
+                            }
+                        }
+                        
+                        command_ui.element.appendChild(onOffInput);
+                        
+                        command_ui.updateData = function( value ) {
+                            onOffInput.checked   = value === "0" ? false : true;
+                        }
+                        
+                        command_ui.getData = function() {
+                            return onOffInput.checked;
+                        }
+                        
+                    } else { // INT, FLOAT
+
+                        
+                        var label = createEditableLabel( command_ui, var_value, ccp( 0, ui_height/2), CCSizeMake( ui_width, ui_height/2.0),
+                            function(value) 
+                            {
+                                if(network.ready)
+                                    network.send( var_name + "#" + label.getString() );
+                                else
+                                    QALayer.showDialog("请先连接飞机WIFI！");
+                            }
+                        );
+                        
+                        command_ui.updateData = function( value ) {
+                            label.setString(value);
+                        }
+                        
+                        command_ui.getData = function() {
+                            return label.getString();
+                        }
+                    }
+                }
+                else if( var_type === "FUNCTION" ) {
+                    
+                    command_ui.element.innerHTML = "";
+                    command_ui.paremeterLabel = createEditableLabel( command_ui, var_value, ccp( 0, ui_height/2), CCSizeMake( ui_width, ui_height/2.0), function(value){});
+                    command_ui.paremeterLabel.setBgColor("#2f69aa");
+                    
+                    var label = createLabelDefaultStyle( var_name, 0, 0);
+                    command_ui.addChild(label);
+                    label.setColor("#eeeeee");
+                    label.setContentSize(  CCSizeMake( ui_width, ui_height/2.0) );
+                    label.setTextAlign("center");
+                    label.setAnchorpoint( 0, 0);
+                    label.setPosition( 0, 0);
+                    
+                    label.setTouchEnabled(true);
+                    
+                    label.touchBegin = function( x, y) {
+                        command_ui.setColor("#00aa00");
+                        command_ui.element.style.borderColor = "#eeeeee";
+                    }
+                    
+                    label.touchEnded = function( x, y) {
+                        if(network.ready) {
+                            if( command_ui.paremeterLabel.getString() !== "" )
+                            {
+                                var paremeter = command_ui.paremeterLabel.getString();
+                                var sendString =  var_name + '#' + paremeter;
+                                network.send(sendString);
+                                onFunction( var_name, paremeter);
+                                
+                            } else {
+                                alert("paremeter is empty!");
+                            }
+                        } else {
+                            QALayer.showDialog("请先连接飞机WIFI！");
+                        }
+                        command_ui.setColor("#1e5799");
+                        command_ui.element.style.borderColor = "#eeeeee";
+                    }
+                    
+                    label.touchCanceled = function( x, y) {
+                        command_ui.setColor("#1e5799");
+                        command_ui.element.style.borderColor = "#eeeeee";
+                    }
+                                                                    
+                } else if( var_type === "VOID_FUNCTION") {
+                    
+                    command_ui.element.innerHTML = "";
+                    
+                    var label = createLabelDefaultStyle( var_name, 0, 0);
+                    command_ui.addChild(label);
+                    label.setColor("#eeeeee");
+                    label.setContentSize(  CCSizeMake( ui_width, ui_height/2.0) );
+                    label.setTextAlign("center");
+                    label.setAnchorpoint( 0, 0);
+                    label.setPosition( 0, ui_height/4.0);
+                    
+                    command_ui.setTouchEnabled(true);
+                    
+                    command_ui.touchBegin = function( x, y) {
+                        command_ui.setColor("#00aa00");
+                        command_ui.element.style.borderColor = "#eeeeee";
+                    }
+                    
+                    command_ui.touchEnded = function( x, y) {
+                        if(network.ready) {
+                            network.send( var_name);
+                            onFunction( var_name, null);
+                        } else {
+                            QALayer.showDialog("请先连接飞机WIFI！");
+                        }
+                        command_ui.setColor("#1e5799");
+                        command_ui.element.style.borderColor = "#eeeeee";
+                    }
+                    
+                    command_ui.touchCanceled = function( x, y) {
+                        command_ui.setColor("#1e5799");
+                        command_ui.element.style.borderColor = "#eeeeee";
+                    }
+                }
+                
+                return command_ui;
+            }
+            
+            dataManager.onDataMessage = function(infoArray) {
+                
+                var var_name   = infoArray[2];
+                var var_type   = infoArray[1];
+                var var_value  = null;
+                
+                switch(var_type) {
+                    case "BOOL": case "INT": case "FLOAT":
+                    var varInfo = var_name.split('#');
+                    var_name = varInfo[0];
+                    var_value    = varInfo[1];
+                    break;
+                    case "FUNCTION":
+                    case "VOID_FUNCTION":
+                    break;
+                }
+                
+                onUpdateVar( var_name, var_value);
+                
+                if( dataManager.filtersEnabled == true
+                   && typeof(dataManager.filters[var_name]) === "undefined"
+                   && dataManager.filters[var_name] !== true )
+                    return;
+                
+                if( typeof(command_map[var_name]) === 'undefined' ) {
+                    var command_ui = createDataCell( var_name, var_type, var_value);
+                    command_map[var_name] = command_ui;
+                } else {
+                    // found the command
+                    command_map[var_name].updateData(var_value);
+                }
+                
+                //cclog("DATA MESSAGE:"+infoArray[1]+":"+infoArray[2]);
+            }
+            
+            return dataManager;
+        }
+        
+        function AddPlaneController( scene ) {
+            
+            var map = [];
+            
+            function C( c ) {
+                return ( c.charCodeAt(0) - 'a'.charCodeAt(0) ) + 65;
+            }
+            
+            function OnKeyDown(evt) {
+                
+                evt=(evt)?evt:window.event;
+                
+                if( evt.keyCode == C('w') ) {
+                    if(typeof(map['w']) === 'undefined') map['w'] = false;
+                    if( map['w'] === false  ) {
+                        map['w'] = true;
+                        cclog('down w');
+                        if(network.ready) network.send("AIM_PITCH#-0.2");
+                    }
+                }
+                else if( evt.keyCode == C('s') ) {
+                    if(typeof(map['s']) === 'undefined') map['s'] = false;
+                    if( map['s'] === false  ) {
+                        map['s'] = true;
+                        cclog('down s');
+                        if(network.ready) network.send("AIM_PITCH#0.2");
+                    }
+                }
+                else if( evt.keyCode == C('a') ) {
+                    if(typeof(map['a']) === 'undefined') map['a'] = false;
+                    if( map['a'] === false  ) {
+                        map['a'] = true;
+                        cclog('down a');
+                        if(network.ready) network.send("AIM_ROLL#-0.2");
+                    }
+                }else if( evt.keyCode == C('d') ) {
+                    if(typeof(map['d']) === 'undefined') map['w'] = false;
+                    if( map['d'] === false  ) {
+                        map['d'] = true;
+                        cclog('down d');
+                        if(network.ready) network.send("AIM_ROLL#0.2");
+                    }
+                }
+                else if( evt.keyCode == C('q') ) {
+                    if(typeof(map['q']) === 'undefined') map['q'] = false;
+                    if( map['q'] === false  ) {
+                        map['q'] = true;
+                        cclog('down q');
+                        if(network.ready) network.send("ROTATE#-0.03");
+                    }
+                }
+                else if( evt.keyCode == C('e') ) {
+                    if(typeof(map['e']) === 'undefined') map['e'] = false;
+                    if( map['e'] === false  ) {
+                        map['e'] = true;
+                        cclog('down e');
+                        if(network.ready) network.send("ROTATE#0.03");
+                    }
+                }
+            }
+            
+            function OnKeyUp(evt) {
+                
+                evt=(evt)?evt:window.event;
+                
+                if( evt.keyCode == C('w') ) {
+                    map['w'] = false;
+                    cclog("up w");
+                    if(network.ready) network.send("AIM_PITCH#0");
+                }
+                else if( evt.keyCode == C('s') ) {
+                    map['s'] = false;
+                    cclog("up s");
+                    if(network.ready) network.send("AIM_PITCH#0");
+                }
+                else if( evt.keyCode == C('a') ) {
+                    map['a'] = false;
+                    cclog("up a");
+                    if(network.ready) network.send("AIM_ROLL#0");
+                }
+                else if( evt.keyCode == C('d') ) {
+                    map['d'] = false;
+                    cclog("up d");
+                    if(network.ready) network.send("AIM_ROLL#0");
+                }
+                else if( evt.keyCode == C('q') ) {
+                    map['q'] = false;
+                    cclog("up q");
+                    if(network.ready) network.send("ROTATE#0");
+                }
+                else if( evt.keyCode == C('e') ) {
+                    map['e'] = false;
+                    cclog("up e");
+                    if(network.ready) network.send("ROTATE#0");
+                }
+            }
+            
+            document.onkeydown = OnKeyDown;
+            document.onkeyup = OnKeyUp;
+        }
+        
+        function EnableCampass() 
+        {   
+            var lastAlpha = null;
+            var fixAlpha = false;
+
+            function update(evt) 
+            {
+                var alpha = evt.alpha;
+                var errorRange = 45;
+
+                if( Math.abs( evt.beta - 90 ) < 20 )
+                {
+                    alpha = lastAlpha;
+                }
+                
+                if( lastAlpha )
+                {    
+                    var diff = alpha - lastAlpha;
+
+                    if( Math.abs( Math.abs(diff) - 180 ) < errorRange )  
+                        fixAlpha = ! fixAlpha;
+                }
+
+                lastAlpha = alpha;
+
+                if( fixAlpha )
+                {
+                    if( alpha >= 180 )
+                        alpha -= 180;
+                    else
+                        alpha += 180;
+                }
+
+                var heading_rad = alpha*Math.PI/180.0;
+
+                HEADING = parseInt(heading_rad*1000)/1000.0;
+                
+                rc_chanels[4] = parseInt(alpha*1000.0/360) + 1000;
+                
+                //console.log("rc_chanels:" + rc_chanels[4]);
+                
+                if( typeof(campass) !== "undefined" ) {
+                    campass.setRotation(alpha);
+                }
+            }
+            
+            function testisnull(evt) {
+                if(evt.alpha != null ) {
+                    window.removeEventListener( 'deviceorientation', testisnull, false);
+                    window.addEventListener( 'deviceorientation', update, false);
+                    cclog("campass supported!");
+                } else {
+                    cclog("campass not supported!");
+                }
+            }
+
+            window.addEventListener( 'deviceorientation', testisnull, false);
+        }
+
+
+        function CreateSensorsLayer( scene )
+        {
+            var sensors = [{ "image":"gyroscope-icon.png", "var_name":"GYRO_STABLE"}];
+            var sensor_dict = {};
+            var size = CCSizeMake( 300, 186);
+            
+            sensorsLayer = CCLayer.create();
+            sensorsLayer.setContentSize(size);
+            sensorsLayer.setPosition( scene.width/2, scene.height/2);
+            //sensorsLayer.setColor(ccc3( 255, 255, 255));
+            //sensorsLayer.setBgOpacity(0.2);
+            scene.addChild(sensorsLayer);
+            sensorsLayer.setVisible(false);
+            
+            var iconDistance = 80;
+            var startX = size.width/2 - (sensors.length-1)*(iconDistance/2);
+            
+            sensorsLayer.icons = [];
+                                                      
+            for(var i=0; i<sensors.length; i++) {
+                sensor_dict[sensors[i].var_name] = true;
+                var icon = CCSprite.create(sensors[i].image);
+                icon.setScale(0.5);
+                sensorsLayer.addChild(icon);
+                icon.setPosition( startX+iconDistance*i, size.height/2);
+                sensorsLayer.icons.push(icon);
+            }
+            
+            sensorsLayer.dict = sensor_dict;
+                        
+            sensorsLayer.onopen = function() {
+                sensorsLayer.setVisible(true);
+                for(var i=0; i<sensorsLayer.icons.length; i++) {
+                     var effect = null;
+                     if(sensors[i].var_name === "GYRO_STABLE") {
+                        effect = RepeatForever( Ease( ease.easeInOutBack, Sequence([RotateTo(1, -80),RotateTo(1, -30)]) ) );
+                     }
+                     else {
+                        sensorsLayer.icons[i].setOpacity(0.5);
+                        effect = RepeatForever( Sequence([FadeTo(0.6, 0.5), FadeTo(0.6, 1.0)]) );
+                     }
+                     sensorsLayer.icons[i].runAction(effect);
+                     sensorsLayer.icons[i].ready =false;
+                }
+            }
+            
+            sensorsLayer.onclose = function() {
+
+                for(var i=0; i<sensorsLayer.icons.length; i++) {
+                     sensorsLayer.icons[i].stopAllActions();
+                    sensorsLayer.icons[i].setOpacity(1);
+                     sensorsLayer.icons[i].ready =false;
+                }
+
+                sensorsLayer.setVisible(false);
+            }
+            
+            sensorsLayer.onReady = function(var_name)
+            {
+                for(var i=0; i<sensors.length; i++) {
+                    if( sensors[i].var_name === var_name ) {
+                        sensorsLayer.icons[i].stopAllActions();
+                        sensorsLayer.icons[i].setOpacity(1);
+                        sensorsLayer.icons[i].ready = true;
+                    }
+                }
+                var allready = true;
+                
+                for(var i=0; i<sensors.length; i++) {
+                    if( sensorsLayer.icons[i].ready === false ) {
+                         allready = false;
+                         break;
+                    }
+                }
+                
+                if( allready ) {
+                     sensorsLayer.runAction(Sequence([DelayTime(3.0), Hide()]));
+                }
+            }
+        }
+
+        (function init() {
+
+			scene = CreateScene();
+
+			var cloud = AddCloud(scene);
+			cloud._locked = true;
+
+			AddRainbow(scene);
+			CreateWebSocket();
+			CreateSenderQueue(scene);
+			CreateDebugInfoLabel(scene);
+			
+			EnableDeviceMotionControl(cloud);
+            EnableCampass();
+            
+			var touchLayer = AddTouchLayer(scene);
+			touchLayer.setControledObject(cloud);
+
+            //AddStartUpTip(scene);
+			AddSettingsLayer(scene);
+			CreateQADialog(scene);
+            AddLEDSwitch(scene);
+            CreateSensorsLayer(scene);
+
+			dataManager = AddDataManager(scene);
+			dataManager.filtersEnabled = true;
+
+			//dataManager.filters["启动"] = true;
+
+			dataManager.filters["PITCH_K1"] = true;
+			dataManager.filters["PITCH_K2"] = true;
+			dataManager.filters["PITCH_K3"] = true;
+			dataManager.filters["PITCH_K4"] = true;
+			
+            dataManager.filters["ROLL_K1"] = true;
+            dataManager.filters["ROLL_K2"] = true;
+            dataManager.filters["ROLL_K3"] = true;
+            dataManager.filters["ROLL_K4"] = true;
+         
+            dataManager.filters["MOTORS_ON"] = true;
+            dataManager.dict["MOTORS_ON"] = "解锁电机";
+            
+            //dataManager.filters["FIX_ALTITUDE_MODE_ON"] = true;
+            //dataManager.filters["P_ALTITUDE"] = true;
+            //dataManager.filters["I_ALTITUDE"] = true;
+            //dataManager.filters["D_ALTITUDE"] = true;
+
+            // dataManager.filters["刷新数据"] = true;
+			// dataManager.filters["向前微调"] = true;
+			// dataManager.filters["向后微调"] = true;
+			// dataManager.filters["向左微调"] = true;
+			// dataManager.filters["向右微调"] = true;
+
+			//dataManager.filters["刷新数据"] = true;
+            //dataManager.filters["NO_HEAD_MODE_ON"] = true;
+			//dataManager.dict["THROW_TO_FLY"] = "手抛起飞";
+			//dataManager.filters["THROW_TO_FLY"] = true;
+
+         })();
+         
+         var obj = new Object();
+
+         obj.show = function()
+         {
+             scene.setVisible(true);
+             scene.runAction(Sequence([ DelayTime(1.5), CallFunc(function(){
+                                                                	//dialog.showCurrentPage();
+                                                                })]));
+         }
+         
+         obj._scene = scene;
+         
+         return obj;
+    }
+    
+    function LoadingScene(sceneToLoad) {
+        
+        var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+        var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+        
+        var scene = CCScene.create();
+        scene.setContentSize(CCSizeMake(w, h));
+        scene.setPosition(w/2,h/2);
+        scene.setColor(skyColor);
+        scene.element.setAttribute('class','scene');
+        
+        var processLabel = createLabelDefaultStyle( "LOADING %0", scene.width/2, scene.height/2);
+        scene.addChild(processLabel);
+        processLabel.setContentSize(CCSizeMake(scene.width,20));
+        processLabel.setColor("#FFFFFF");
+        processLabel.setTextAlign("center");
+        
+        processLabel.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() {
+                                                                                processLabel.setString("LOADING %"+ parseInt(getLoadingPercentage()));
+                                                                                if( isAllResourceReady() ) {
+                                                                                sceneToLoad.show();
+                                                                                scene.removeAllChildsAndCleanUp(true);
+                                                                                scene.removeFromParent();
+                                                                                processLabel.stopAllActions();
+                                                                                }
+                                                                                })])));
+    }
+    
+    function LandscapeTipScene(plane_remote) 
+    {    
+       
+        var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+        var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+        
+        var tipScene = CCScene.create();
+        tipScene.setContentSize(CCSizeMake(h, w));
+        tipScene.setTouchEnabled(true);
+        tipScene.setVisible(false);
+        tipScene.element.setAttribute('class','scene');
+        
+        var tipLabel = createLabelDefaultStyle( "请将设备锁定为竖屏", tipScene.width/2, tipScene.height/2);
+        tipScene.addChild(tipLabel);
+        tipLabel.setContentSize(CCSizeMake(tipScene.width,20));
+        tipLabel.setColor("#ffffff");
+        tipLabel.setTextAlign("center");
+        tipLabel.setOpacity(0.6);
+        
+		function on_orintation_change(orintation) 
+		{
+			var w = window.innerWidth < window.innerHeight ? window.innerWidth : window.innerHeight;
+			var h = window.innerWidth > window.innerHeight ? window.innerWidth : window.innerHeight;
+
+			if( orintation === "landscape" )
+			{
+				tipScene.setContentSize(CCSizeMake(h, w));
+				tipLabel.setPosition(h/2,w/2);
+				tipScene.setVisible(true);
+			}
+			else if( orintation === "portrait" )
+			{
+				tipScene.setVisible(false);
+				plane_remote._scene.setContentSize(CCSizeMake(w, h));
+			}
+		}
+
+        SetOrintationLisener(on_orintation_change);
+    }
+    
+    function Start() {
+        var plane_remote = PlaneScene();
+        LoadingScene(plane_remote);
+        StartAnimation(1/60);
+    }
+    
+    Start();
+    
+    </script>
+</html>

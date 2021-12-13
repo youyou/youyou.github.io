@@ -1,9 +1,8 @@
-<html>
+<html manifest="cache.manifest">
     <head>
         <meta charset="utf-8">
-       <!--  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> -->
+        <meta http-equiv="Content-Security-Policy" content="script-src * 'unsafe-inline' blob: filesystem: 'wasm-eval';"/>
         <meta name="viewport" content="width=320 user-scalable=no"/>
-        <meta name="x5-orientation" content="portrait"/>
         <meta name="x5-fullscreen" content="true" />
         <meta name="x5-page-mode" content="app" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -139,13 +138,15 @@
     <body ondragstart="return false;"  ondrop="return false;" bgcolor=#FFFFFF style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#fffffff >
         <style>
         .scene {
+             /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#1e5799+0,2989d8+50,7db9e8+100 */
             background: rgb(30,87,153); /* Old browsers */
-            background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%);
-            background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); 
-            background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%);
-            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 );       
+            background: -moz-linear-gradient(top, rgba(30,87,153,1) 0%, rgba(41,137,216,1) 50%, rgba(125,185,232,1) 100%); /* FF3.6-15 */
+            background: -webkit-linear-gradient(top, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* Chrome10-25,Safari5.1-6 */
+            background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(41,137,216,1) 50%,rgba(125,185,232,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1e5799', endColorstr='#7db9e8',GradientType=0 ); /* IE6-9 */        
         }
         </style>
+        <!-- <div id='3dmodel' width=300 height=300 zIndex=100000 model='model/headStrengthen.stl'/> -->
     </body>
     <script src="cocos2d-adapter.js"></script>
     <script src="js/jquery-1.11.1.min.js"></script>

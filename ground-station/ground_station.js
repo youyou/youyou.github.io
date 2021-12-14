@@ -90,24 +90,24 @@ if( typeof(config_device) !== 'undefined' ) {
     config_device();
 }
 
-// function ChangeValue( time, beginValue, dValue, valueFunc ) {
-//     var obj = TimeAction(time);
-//     function start( target ) {
-//         obj._start( target);
-//         obj._beginValue = beginValue;
-//     }
-//     function step( p ) {
-//         valueFunc( obj._beginValue + dValue * p );
-//     }
-//     function end() {
-//         step( 1 );
-//         obj._end();
-//     }
-//     obj.start  = start;
-//     obj.step = step;
-//     obj.end = end;
-//     return obj;
-// }
+function ChangeValue( time, beginValue, dValue, valueFunc ) {
+    var obj = TimeAction(time);
+    function start( target ) {
+        obj._start( target);
+        obj._beginValue = beginValue;
+    }
+    function step( p ) {
+        valueFunc( obj._beginValue + dValue * p );
+    }
+    function end() {
+        step( 1 );
+        obj._end();
+    }
+    obj.start  = start;
+    obj.step = step;
+    obj.end = end;
+    return obj;
+}
 
 function getIPs(callback){
     var ip_dups = {};
@@ -178,6 +178,56 @@ function getIPs(callback){
                              handleCandidate(line);
                              });
                }, 1000);
+}
+
+// 取值17是为了处理页面内容出现滚动条的情况
+function isFullScreen()
+{
+    var isFull = Math.abs(window.screen.height-window.document.documentElement.clientHeight) <= 17;
+    return isFull;
+}
+ 
+// window.onresize = function () {
+//     isFull = Math.abs(window.screen.height-window.document.documentElement.clientHeight) <= 17;
+// }
+
+// 阻止F11键默认事件，用HTML5全屏API代替
+window.addEventListener('keydown', function (e) {
+    e = e || window.event
+    if (e.keyCode===122 && !isFull) {
+        e.preventDefault()
+        enterFullScreen()
+    }
+})
+
+// 打开浏览器全屏模式
+function enterFullScreen () {
+    let el = document.documentElement
+    let rfs = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullscreen
+    if (rfs) { // typeof rfs != "undefined" && rfs
+    rfs.call(el)
+    } else if (typeof window.ActiveXObject !== 'undefined') {
+    // for IE，这里其实就是模拟了按下键盘的F11，使浏览器全屏
+    let wscript = new ActiveXObject('WScript.Shell')
+    if (wscript != null) {
+        wscript.SendKeys('{F11}')
+    }
+    }
+}
+
+// 退出全屏
+function exitFullScreen () {
+    let el = document
+    let cfs = el.cancelFullScreen || el.mozCancelFullScreen || el.msExitFullscreen || el.webkitExitFullscreen || el.exitFullscreen
+    if (cfs) { // typeof cfs != "undefined" && cfs
+    cfs.call(el)
+    } else if (typeof window.ActiveXObject !== 'undefined') {
+    // for IE，这里和fullScreen相同，模拟按下F11键退出全屏
+    let wscript = new ActiveXObject('WScript.Shell')
+    if (wscript != null) {
+        wscript.SendKeys('{F11}')
+    }
+    }
 }
 
 function CreateSTLViewerLayer( mesh ) {
@@ -354,20 +404,32 @@ function MainScene() {
     
     var scene = null;
 
-    function CreateScene() 
-    {    
+    function CreateScene() {
+        
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        
         var scene = CCScene.create();
+        scene.setContentSize(CCSizeMake(w, h));
+        scene.setPosition(w/2,h/2);
         scene.setTouchEnabled(true);
         scene.setVisible(false);
         scene.element.setAttribute('class','scene');
         scene.element.style.overflow = "hidden";
-        
-        scene.layout = function ( w, h)
-        {
+
+        scene.layout = function ( w, h) {
             scene.setContentSize(CCSizeMake(w, h));
             scene.setPosition(w/2,h/2);
         }
-        scene.layout( window.innerWidth, window.innerHeight);
+        
+        scene.layout( w, h);
+        
+        function resize() {
+            w = window.innerWidth;
+            h = window.innerHeight;
+            scene.layout( w, h);
+        }
+        window.addEventListener('resize', resize);
         
         return scene;
     }
@@ -450,27 +512,25 @@ function MainScene() {
     {
         var vadc = ( value/1024.0 ) - 0.01;
         var v    = vadc*(680.0+51.0)/51.0;
-        // cclog( "vadc:" + vadc + " v:" + v);
         return v;
     }
 
     function onReceiveBatteryVotage(message)
     {
         cclog(message);
-
-        var adcValue = parseInt(message);
         
+        var adcValue = parseInt(message);
         var v = ADCToVotage(adcValue);
 
         // enable battery display when plane sends battery data
-        if( typeof(batteryLayer) == 'undefined' ) {
-            
+        if( typeof(batteryLayer) == 'undefined' )
+        {    
             var s = 1;
 
             if( v > 5 ) {
                 s = 2;
             }
-
+            
             if( v > 9) {
                 s = 3;
             }
@@ -527,10 +587,7 @@ function MainScene() {
                 QALayer.showDialog( infoArray[2], 3);
             }
             else if(infoArray[1]=="EVENT") {
-                if( infoArray[2]== "FAILED_GYRO_STABLE" ) {
-                    QALayer.showDialog( "请校准陀螺仪", 3);
-                    sensorsLayer.onclose();
-                }
+                
             }
 
             return;
@@ -681,7 +738,10 @@ function MainScene() {
 
     function VotageToPercent(votage) {
         
+        cclog("votage:"+votage);
+
         var votages = [4.22, 4.15, 4.14, 4.12, 4.10, 4.08, 4.05, 4.03, 3.97, 3.93, 3.90, 3.87, 3.84, 3.81, 3.79, 3.77, 3.76, 3.76, 3.74, 3.73, 3.72, 3.71, 3.69, 3.66, 3.65, 3.64, 3.63, 3.61, 3.59, 3.58];
+        
         var energyLeft = [100, 99, 97, 95, 92, 90, 87, 85, 80, 75, 70, 65, 60, 55, 50, 45, 42, 40, 35, 30, 25, 20, 15, 12, 10, 8, 5, 3, 1, 0];
         
         var index = votages.length - 1;
@@ -1436,7 +1496,6 @@ function MainScene() {
             return oscilloscopeLayer;
         }
         
-
         function CreateSwitchControl(callback)
         {
            var switchControl = CCLayer.create();
@@ -1469,13 +1528,13 @@ function MainScene() {
             var animateDuration = 0.2;
             var banner_height = 22;
             var hideIcon = false;
-
+            
             var dataIndexLayer = CCScrollLayer.create();
             dataIndexLayer.setAnchorpoint( 1, 0);
             scene.addChild(dataIndexLayer);
             dataIndexLayer.setVisible(false);
             dataIndexLayer.isShow = false;
-
+            
             dataIndexLayer.layout = function(w,h)
             {
                 dataIndexLayer.setContentSize( CCSizeMake( 200, scene.height));
@@ -1487,63 +1546,69 @@ function MainScene() {
                     dataIndexLayer.setPosition( w+dataIndexLayer.width-banner_height, 0);
             }
             dataIndexLayer.layout( scene.width, scene.height);
-
+            
             if(dataIndexLayer.isShow)
                 dataIndexLayer.setBgOpacity(0.1);
             else
                 dataIndexLayer.setBgOpacity(0);
-
+            
             dataIndexLayer.setColor("#ffffff");
-
+            
             var topLabel = CCLabel.create("");
             topLabel.setBgColor("#00aaff");
             dataIndexLayer.addChild(topLabel);
             topLabel.setAnchorpoint( 0, 0);
-            topLabel.setPosition(0, 0); //scrollView.contentHeight);
+            topLabel.setPosition(0, 0);
             topLabel.setColor("ffffff");
             topLabel.setTextAlign("center");
             topLabel.setDepth(2);
-
+            
             var showIcon = null;
             var hideIcon = null;
-
+            
             dataIndexLayer.show = function()
             {
-                dataIndexLayer.runAction( MoveTo( animateDuration, scene.width, 0) );
-                showIcon.setVisible(false);
-                hideIcon.setVisible(true);
-                dataIndexLayer.setBgOpacity(0.1);
+                if(dataIndexLayer.isShow) return;
                 dataIndexLayer.isShow = true;
+                dataIndexLayer.runAction(Sequence([ MoveTo( animateDuration, scene.width, 0), CallFunc(function(){
+                    hideIcon.setVisible(true);
+                })]));
+                showIcon.setVisible(false);
+                dataIndexLayer.setBgOpacity(0.1);
             }
-
+            
             showIcon = createButton( dataIndexLayer.show, "show.png");
             topLabel.addChild(showIcon);
             showIcon.setScale(banner_height/64.0*0.618);
             showIcon.setAnchorpoint( 0.5, 0.5);
             showIcon.setPosition( banner_height/2, banner_height/2);
             if(dataIndexLayer.isShow) showIcon.setVisible(false);
-
+            
             dataIndexLayer.hide = function()
             {
-                var moveAction = MoveTo( animateDuration, scene.width+dataIndexLayer.width-banner_height, 0);
+                if(!dataIndexLayer.isShow) return;
+                dataIndexLayer.isShow = false;
+                var moveAction = MoveTo( animateDuration, scene.width + dataIndexLayer.width-banner_height/2, 0);
                 dataIndexLayer.runAction(Sequence([ moveAction, CallFunc(function(){
                     dataIndexLayer.setBgOpacity(0);
+                    showIcon.setVisible(true);
                 })]));
                 hideIcon.setVisible(false);
-                showIcon.setVisible(true);
-                dataIndexLayer.isShow = false;
             }
-
+            
             hideIcon = createButton( dataIndexLayer.hide, "hide.png");
             topLabel.addChild(hideIcon);
             hideIcon.setScale(banner_height/64.0*0.618);
             hideIcon.setAnchorpoint( 0.5, 0.5);
             hideIcon.setPosition( banner_height/2, banner_height/2);
             if(!dataIndexLayer.isShow) hideIcon.setVisible(false);
-
-            (topLabel.layout = function(w,h) {
-                topLabel.setContentSize(CCSizeMake(dataIndexLayer.width,banner_height));
-            })( dataIndexLayer.width, dataIndexLayer.contentHeight);
+            
+            topLabel.layout = function(w,h) {
+                topLabel.setContentSize(CCSizeMake( dataIndexLayer.width, banner_height));
+                showIcon.setPosition( banner_height/2, banner_height/2);
+                hideIcon.setPosition( banner_height/2, banner_height/2);
+            };
+            topLabel.layout( dataIndexLayer.width, dataIndexLayer.contentHeight);
             
             dataIndexLayer.onScroll = function(offset)
             {
@@ -1577,7 +1642,7 @@ function MainScene() {
                         indexCells[theSwitchControl.index].setColor(dataColors[theSwitchControl.index]);
                     }
                 });
-
+                
                 switchControl.setAnchorpoint( 0, 0.5);
                 switchControl.setPosition(3,indexCell.height/2);
                 switchControl.index = indexCell.index;
@@ -1624,13 +1689,12 @@ function MainScene() {
                     indexCells[i] = null;
                 }
                 
-                topLabel.setString(dataMark);                
-
+                topLabel.setString(dataMark);
                 indexCells.length = 0;
-
+                
                 if(!dataIndexLayer.isVisible())
                     dataIndexLayer.setVisible(true);
-
+                
                 if(!dataIndexLayer.isShow)
                     this.show();
             }
@@ -1645,7 +1709,7 @@ function MainScene() {
         var dataIndexLayer    = createDataIndexLayer();
         
         var currentDataMark = "null";
-
+        
         viewer.onDataMessage = function( message ) {
 
             oscilloscopeLayer.displayMessage(message);
@@ -1666,7 +1730,7 @@ function MainScene() {
         viewer.onDataInfoMessage = function(infoArray) {
             dataIndexLayer.addDataIndex( infoArray[1], infoArray[2]);
         }
-            
+        
         return viewer;
     }
     
@@ -1734,13 +1798,44 @@ function MainScene() {
     
     function onUpdateVar( var_name, var_value)
     {   
-        if( var_name in sensorsLayer.dict ) {
+        if( var_name in sensorsLayer.dict )
+        {
             console.log("%c"+var_name + ":" + var_value, "color:#aa6666");
             if( var_value === "1" )
                 sensorsLayer.onReady(var_name);
         }
+        else if(  var_name === "IMU_STATE" )
+        {
+            var IMU_WAITING_START    = 0;
+            var IMU_WAITING_STABLE   = 1;
+            var IMU_STABLE_TESTING   = 2;
+            var IMU_IS_STABLE        = 3;
+            var IMU_FAILED_STABLE    = 4;
+            var IMU_STATE = parseInt(var_value);
+            switch(IMU_STATE)
+            {
+            case IMU_WAITING_START:
+                network.send("启动");
+                break;
 
-        if( var_name === "控制数据" && typeof(stllayer) !== "undefined" )
+            case IMU_WAITING_STABLE: //case IMU_STABLE_TESTING:
+                if( typeof(sensorsLayer) !== "undefined" && (!sensorsLayer.isVisible()) )
+                    sensorsLayer.onopen();
+                break;
+
+            case IMU_IS_STABLE:
+                if( typeof(sensorsLayer) !== "undefined" && sensorsLayer.isVisible() )
+                    sensorsLayer.onReady("IMU_STABLE");
+                break;
+
+            case IMU_FAILED_STABLE:
+                QALayer.showDialog( "请校准陀螺仪", 3);
+                if(typeof(sensorsLayer) !== "undefined" && sensorsLayer.isVisible())
+                    sensorsLayer.close();
+                break;
+            }
+        }
+        else if( var_name === "控制数据" && typeof(stllayer) !== "undefined" )
         {
             if( parseInt(var_value) === 1 )
             {
@@ -2048,7 +2143,7 @@ function MainScene() {
     
     function CreateSensorsLayer( scene )
     {
-        var sensors = [{ "image":"gyroscope-icon.png", "var_name":"GYRO_STABLE"}];
+        var sensors = [{ "image":"gyroscope-icon.png", "var_name":"IMU_STABLE"}];
         var sensor_dict = {};
         var size = CCSizeMake( 300, 186);
         
@@ -2085,8 +2180,16 @@ function MainScene() {
         sensorsLayer.onopen = function() {
             sensorsLayer.setVisible(true);
             for(var i=0; i<sensorsLayer.icons.length; i++) {
-                 var breathEffect = RepeatForever(Sequence([FadeTo(0.6, 0.5), FadeTo(0.6, 1.0)]));
-                 sensorsLayer.icons[i].runAction(breathEffect);
+                 var effect = null;
+                 if(sensors[i].var_name === "IMU_STABLE") {
+                    effect = RepeatForever( Ease( ease.easeInOutBack, Sequence([RotateTo(1, -80),RotateTo(1, -30)]) ) );
+                 }
+                 else {
+                    sensorsLayer.icons[i].setOpacity(0.5);
+                    effect = RepeatForever( Sequence([FadeTo(0.6, 0.5), FadeTo(0.6, 1.0)]) );
+                 }
+                 sensorsLayer.icons[i].stopAllActions();
+                 sensorsLayer.icons[i].runAction(effect);
                  sensorsLayer.icons[i].ready =false;
             }
         }
@@ -2190,10 +2293,10 @@ function MainScene() {
         CreateDeviceButton(scene);
         CreateQADialog(scene);
         CreateSensorsLayer(scene);
-                                  
+        
         dataViewer  = AddDataViewer(scene);
         dataManager = AddDataManager(scene);
-
+        
         if(DICT_ENABLED) {
             dataManager.dict = DICT;
         }
@@ -2212,6 +2315,24 @@ function MainScene() {
         });
 
         CreatePosViewer(scene);
+        
+        var fullScreenButton = null;
+
+        function toogle_full_screen()
+        {
+            if( !isFullScreen() )
+            {
+                enterFullScreen();
+                fullScreenButton.setImage("exitFullscreen.png");
+            }
+            else
+            {
+                exitFullScreen();
+                fullScreenButton.setImage("fullscreen.png");
+            }
+        }
+        
+        fullScreenButton = CreateToolBarItem( scene, toogle_full_screen, "fullscreen.png");
     }
     
     init();
@@ -2228,72 +2349,6 @@ function MainScene() {
     return obj;
 }
 
-function createProcessBar()
-{
-    var processLayer = CCLayer.create();
-
-    processLayer.__percent = 0;
-    processLayer.__width  = 80;
-    processLayer.__height = 16;
-
-    processLayer.__setContentSize = processLayer.setContentSize;
-    processLayer.__setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
-
-    var processLayerBg = CCLayer.create();
-    processLayer.addChild(processLayerBg);
-    processLayerBg.setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
-    processLayerBg.setColor("#ffffff");
-    processLayerBg.setOpacity(0.1);
-    processLayerBg.setAnchorpoint( 0, 0);
-    processLayerBg.setPosition( 0, 0);
-
-    var finishedLayer = CCLayer.create();
-    finishedLayer.setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
-    finishedLayer.setAnchorpoint( 0, 0);
-    finishedLayer.setPosition( 0, 0);
-    finishedLayer.setColor(ccc3(88,255,88));
-    finishedLayer.setOpacity(0.6);
-    processLayer.addChild(finishedLayer);
-    
-    processLayer.__percent = 0;
-    processLayer._w = 60;            
-
-    processLayer.setContentSize = function(size) {
-        
-        processLayer.__width  = size.width;
-        processLayer.__height = size.height;
-
-        processLayer.__setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
-        processLayerBg.setContentSize(CCSizeMake( processLayer.__width, processLayer.__height));
-        
-        processLayer.setProcess(processLayer.__percent);
-    }
-
-    processLayer.setProcess = function(percent) {
-                        
-        if(percent>100) { percent = 100; }
-        if(percent<0) { percent = 0;}
-        
-        finishedLayer.setContentSize(CCSizeMake( processLayer.__width*percent/100.0, processLayer.__height));
-        
-        processLayer.__percent = percent;
-    }
-    
-    processLayer.getProcess = function() {
-        return processLayer.__percent;
-    }
-
-    processLayer.destory = function () {
-        if( typeof(processLayer) !== 'undefined' ) {
-            processLayer.stopAllActions();
-            processLayer.removeFromParent();
-            processLayer = undefined;
-        }
-    }
-
-    return processLayer;
-}
-
 function LoadingScene(sceneToLoad) 
 {
     var w = window.innerWidth;
@@ -2303,60 +2358,22 @@ function LoadingScene(sceneToLoad)
     scene.setContentSize(CCSizeMake(w, h));
     scene.setPosition(w/2,h/2);
     scene.element.setAttribute('class','scene');
-
-    scene.layout = function ( w, h) {
-        scene.setContentSize(CCSizeMake(w, h));
-        scene.setPosition(w/2,h/2);
-    }
-    
-    var process_bar = createProcessBar();
-    scene.addChild(process_bar);
-    process_bar.setAnchorpoint( 0.5, 0.5);
-
-    process_bar.layout = function(width,height)
-    {
-        process_bar.setContentSize(CCSizeMake(300, 3));
-        process_bar.setPosition(scene.width/2,scene.height/2+15);
-    }
-    
-    process_bar.layout(scene.width,scene.height);
     
     var processLabel = createLabelDefaultStyle( "LOADING %0", scene.width/2, scene.height/2);
     scene.addChild(processLabel);
+    processLabel.setContentSize(CCSizeMake(scene.width,20));
     processLabel.setColor("#FFFFFF");
     processLabel.setTextAlign("center");
-    
-    processLabel.layout = function(width,height) 
-    {
-        processLabel.setContentSize(CCSizeMake(scene.width,20));
-        processLabel.setPosition(scene.width/2, scene.height/2);
-    }
-    processLabel.layout(scene.width,scene.height);
-    
-    var percent = 0;
-    var filter_paremeter = 0.618;
-
-    scene.jump = function()
-    {
-        sceneToLoad.show();
-        scene.stopAllActions();
-        scene.removeAllChildsAndCleanUp(true);
-        scene.removeFromParent();
-    }
-
-    scene.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() 
-    {
-        percent = (percent * filter_paremeter) + (getLoadingPercentage() * (1-filter_paremeter));
-        
-        var p = parseInt(percent+0.5);
-        processLabel.setString("LOADING "+ p +"%");
-        process_bar.setProcess(p);
-        
-        if( parseInt(percent+0.5) === 100 & isAllResourceReady() ) {
-            setTimeout( scene.jump, 500);
+    processLabel.runAction(RepeatForever(Sequence([DelayTime(0.1), CallFunc(function() {
+        processLabel.setString("LOADING %"+ parseInt(getLoadingPercentage()));
+        if( isAllResourceReady() ) {
+            sceneToLoad.show();
+            scene.removeAllChildsAndCleanUp(true);
+            scene.removeFromParent();
+            processLabel.stopAllActions();
         }
-        
     })])));
+                    
 }
 
 function Start() {
@@ -2364,5 +2381,5 @@ function Start() {
     LoadingScene(main_scene);
     StartAnimation(1/60);
 }
-
+                                                                 
 Start();

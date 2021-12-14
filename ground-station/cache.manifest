@@ -1,0 +1,25 @@
+CACHE MANIFEST
+
+gyroscope-icon.png
+exitFullscreen.png
+settingsBtn.png
+fullscreen.png
+gyroscope.png
+devicesBtn.png
+stateView.png
+close.png
+rainbow.png
+
+
+js/ColladaLoader.js	
+js/STLLoader.js
+js/jquery.min.js
+js/viewer-jquery.min.js
+js/Detector.js
+js/jquery-1.11.1.min.js
+js/three.min.js
+js/viewer.min.js
+model/QuadCopter.stl 
+
+cocos2d-adapter.js
+ground_station.js

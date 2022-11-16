@@ -1496,6 +1496,7 @@ function MainScene() {
             return oscilloscopeLayer;
         }
         
+<<<<<<< HEAD:ground-station/ground_station.js
         function CreateSwitchControl(callback)
         {
            var switchControl = CCLayer.create();
@@ -1614,23 +1615,31 @@ function MainScene() {
             {
                 topLabel.setPosition(0,offset);
             }
+=======
+        function createDataIndexLayer() {
+            
+            var dataIndexLayer = CCLayer.create();
+            dataIndexLayer.setContentSize( CCSizeMake( 200, scene.height));
+            dataIndexLayer.setAnchorpoint( 0, 0);
+            scene.addChild(dataIndexLayer);
+            dataIndexLayer.layout = function(w,h){
+                dataIndexLayer.setPosition( scene.width - dataIndexLayer.width, 0);
+            }
+            dataIndexLayer.layout(scene.width,scene.height);
+
+            dataIndexLayer.element.style.overflow = "auto";
+
+            var indexLabels = [];
+>>>>>>> 482ecc911972a6cc54eb3968b2cbaf50c9856ac3:ground_station/ground_station.js
             
             dataIndexLayer.addDataIndex = function( dataIndex, dataName) {
                 
-                var indexCell = CCLayer.create();
-                var margin = 5;
+                var indexLabel = CCLayer.create();
 
-                indexCell.index = parseInt(dataIndex);
-                dataColors[indexCell.index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);                
-                
-                dataIndexLayer.addChild(indexCell);
-                indexCells.push(indexCell);
 
-                indexCell.setContentSize( CCSizeMake( 150, 30));
-                indexCell.setAnchorpoint( 0.5, 0);
-                indexCell.setPosition( dataIndexLayer.width/2, 42+indexCell.index*62);
-                indexCell.setColor(dataColors[indexCell.index]);
+                indexLabel._index = parseInt(dataIndex);
 
+<<<<<<< HEAD:ground-station/ground_station.js
                 dataIndexLayer.setContentHeight(42+indexCell.index*62+23+42);
 
                 var switchControl = CreateSwitchControl(function(theSwitchControl) {
@@ -1654,28 +1663,66 @@ function MainScene() {
                 indexLabel.setPosition(switchControl.width+margin*2,0);
                 indexLabel.setContentSize(CCSizeMake(indexCell.width-switchControl.width-margin*2, indexCell.height));
                 indexLabel.index = indexCell.index;
+=======
+                dataColors[indexLabel._index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);
+                
+                dataIndexLayer.addChild(indexLabel);
+                
+                indexLabels.push(indexLabel);
+>>>>>>> 482ecc911972a6cc54eb3968b2cbaf50c9856ac3:ground_station/ground_station.js
 
-                indexCell.addChild(indexLabel);
-                indexCell.addChild(switchControl);
+                indexLabel.setContentSize( CCSizeMake( 150, 23));
+                indexLabel.setAnchorpoint( 0, 0);
+                indexLabel.setPosition( 42, 42+indexLabel._index*62);
+                indexLabel.setColor(dataColors[indexLabel._index]);
+                
+                indexLabel.element.style.borderColor = "#eeeeee";
+                indexLabel.element.style.borderStyle = "solid";
+                indexLabel.element.style.borderWidth = "2px";
+                indexLabel.element.style.borderRadius = "2px";
 
-                indexCell.element.style.borderStyle = "solid";
-                indexCell.element.style.borderWidth = "1px";
-                indexCell.element.style.borderRadius = "2px";
+                indexLabel.element.innerHTML = "<input type='checkbox' id=\""+indexLabel._index+":data_on\"/>" + dataName + ""; //(dataColors.length);
                 
                 indexLabel.setTouchEnabled(true);
+                
+                var e = document.getElementById(""+indexLabel._index+":data_on");
+                if(e)
+                {
+                    e.onclick = function() {
+                        if( !this.checked ) 
+                        {
+                            var index = parseInt(this.id);
+                            dataColors[index] = 'transparent';
+                            indexLabels[index].setColor(dataColors[this._index]);
+                            indexLabels[index].element.style.borderColor = "#eeeeee";
+                        }
+                    }
+                }
 
                 indexLabel.touchEnded = function(x,y) 
                 {
-                    if(x > indexCell.width || x < 0 || y > indexCell.height || y < 0 ) {
+                    //cclog("touch ended x:"+x+",y:"+y+" w:"+indexLabel.width+" h:"+indexLabel.height);
+                    if(x > indexLabel.width || x < 0 || y > indexLabel.height || y < 0 ) {
                         indexLabel.touchCanceled();
                     } else {
-                        indexCells[this.index].switchControl.setChecked(true);
+                        dataColors[this._index] = '#'+Math.floor(Math.random()*0xffffff).toString(16);
+                        this.setColor(dataColors[this._index]);
+                        this.setBgOpacity(1);
+                        this.element.style.borderColor = "#eeeeee";
                     }
                 };
                 
                 indexLabel.touchCanceled = function() {
-                    indexCells[this.index].switchControl.setChecked(false);
+                    
+                    cclog("touch cancel");
+                    
+                    dataColors[this._index] = 'transparent';
+                    indexLabel.setBgOpacity(0);
+                    
+                    cclog("index:"+this._index+" color:"+dataColors[this._index]);
+                    this.element.style.borderColor = "#eeeeee";
                 };
+
             }
             
             dataIndexLayer.setMark = function(dataMark) {
@@ -1684,11 +1731,12 @@ function MainScene() {
                 dataColors.length = 0;
                 
                 //set mark
-                for( var i=0; i<indexCells.length; ++i) {
-                    indexCells[i].removeFromParent();
-                    indexCells[i] = null;
+                for( var i=0; i<indexLabels.length; ++i) {
+                    indexLabels[i].removeFromParent();
+                    indexLabels[i] = null;
                 }
                 
+<<<<<<< HEAD:ground-station/ground_station.js
                 topLabel.setString(dataMark);
                 indexCells.length = 0;
                 
@@ -1697,6 +1745,9 @@ function MainScene() {
                 
                 if(!dataIndexLayer.isShow)
                     this.show();
+=======
+                indexLabels.length = 0;
+>>>>>>> 482ecc911972a6cc54eb3968b2cbaf50c9856ac3:ground_station/ground_station.js
             }
             
             return dataIndexLayer;
@@ -2373,7 +2424,11 @@ function LoadingScene(sceneToLoad)
             processLabel.stopAllActions();
         }
     })])));
+<<<<<<< HEAD:ground-station/ground_station.js
                     
+=======
+
+>>>>>>> 482ecc911972a6cc54eb3968b2cbaf50c9856ac3:ground_station/ground_station.js
 }
 
 function Start() {

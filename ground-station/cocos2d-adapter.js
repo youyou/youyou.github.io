@@ -1257,11 +1257,20 @@ function CCLabel_instance(parent_instance, str) {
     }
 
     parent_instance.setString = function (str) {
+<<<<<<< HEAD:ground-station/cocos2d-adapter.js
         textNode.innerHTML = str;
     };
 
     parent_instance.getString = function () {
         return parent_instance.textNode.innerText;
+=======
+        parent_instance.element.innerHTML = str;
+        parent_instance.element.style['font-family'] = "Familiar";
+    };
+
+    parent_instance.getString = function () {
+        return parent_instance.element.innerHTML;
+>>>>>>> 482ecc911972a6cc54eb3968b2cbaf50c9856ac3:ground_station/cocos2d-adapter.js
     };
 
     parent_instance._setColor = parent_instance.setColor;
@@ -2306,8 +2315,35 @@ function ScaleTo(time, scale) {
         var curScale = obj.sScale + obj.dScale * p;
         cclog("called scale:" + curScale);
         obj.target.setScale(curScale);
+<<<<<<< HEAD:ground-station/cocos2d-adapter.js
     }
     function end() {
+        obj._end();
+    }
+    obj.start = start;
+    obj.step = step;
+    obj.end = end;
+    return obj;
+}
+
+function RotateTo(time, deg)
+{
+    var obj = TimeAction(time);
+    function start(target)
+    {
+        obj._start(target);
+        obj.sRotation = target.rotation;
+        obj.dRotation = deg - obj.sRotation;
+    }
+    function step(p)
+    {
+        var rotation = obj.sRotation + obj.dRotation * p;
+        obj.target.setRotation(rotation);
+=======
+>>>>>>> 482ecc911972a6cc54eb3968b2cbaf50c9856ac3:ground_station/cocos2d-adapter.js
+    }
+    function end() {
+        step(1);
         obj._end();
     }
     obj.start = start;

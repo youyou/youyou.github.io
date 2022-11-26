@@ -73,28 +73,79 @@
     var scene = CreateScene();
     cclog("scene.ax:"+scene.ax+" scene.ay:"+scene.ay);
 
+    var menu_bar_height = 30;
+
     var menu_layer = CCLayer.create();
     scene.addChild(menu_layer);
-    menu_layer.setColor("#ccddee");
+    menu_layer.setColor("#333333");
     menu_layer.setAnchorpoint(0,0);
     menu_layer.layout = function( w, h)
     {
-        menu_layer.setContentSize(CCSizeMake( w, 30));
+        menu_layer.setContentSize(CCSizeMake( w, menu_bar_height));
         menu_layer.setPosition( 0, 0);
     }
     menu_layer.layout( scene.width, scene.height);
 
-    menu_layer.element.innerHTML 
-    = "<button onclick='execute();' style='margin-top:1px;''>运行</button>"
+    //menu_layer.num_menu_items = 0;
+    menu_layer.menu_items = [];
+    menu_layer.menu_item_width = 60;
 
-    menu_layer.element.innerHTML += 
-    "<button onclick='fullScreenEdit();' style=menu_layer.element.innerHTML margin-top:1px;'>全屏</button>"
-    
-    menu_layer.element.innerHTML +=
-    "<button onclick='previous();' id='previous' style='margin-top:1px;'>上一页</button>"
+    menu_layer.addMenuItem = function( title, callback)
+    {
+      var label = CCLabel.create(title);
 
-    menu_layer.element.innerHTML +=
-    "<button onclick='next();' id='next' style='margin-top:1px;'>下一页</button>";
+      menu_layer.addChild(label);
+      
+      label.setContentSize(CCSizeMake( this.menu_item_width, menu_bar_height));
+      label.setAnchorpoint(0,0);
+      label.setPosition( (this.menu_item_width + 1) * this.menu_items.length, 0);
+      label.setBgColor("#ffffff");
+      label.setColor("#ffffff");
+      label.setBgOpacity(0.1);
+      label.setTextAlign("center");
+      label.setTouchEnabled(true);
+
+      label.disabled = false;
+
+      label.touchEnded = function( x, y)
+      {
+        if(!this.disabled)
+          callback();
+      };
+
+      label.setDisabled = function(disabled)
+      {        
+        this.disabled = disabled;
+        this.setOpacity(this.disabled ? 0.5 : 1);
+      }
+
+      var item_id = menu_layer.menu_items.length;
+      menu_layer.menu_items.push(label);
+
+      return item_id;
+    }
+
+    menu_layer.addMenuItem( "运行", function(){
+      execute();
+    });
+
+    menu_layer.addMenuItem( "全屏", function(){
+      fullScreenEdit();
+    });
+
+    var previous_button_index = menu_layer.addMenuItem( "上一页", function(){
+      previous();
+    });
+
+    var next_button_index = menu_layer.addMenuItem( "下一页", function(){
+      next();
+    });
+
+    menu_layer.getMenuItem = function(index)
+    {
+      var label = menu_layer.menu_items[index];
+      return label;
+    }
 
     var editor_layer = CCLayer.create();
     scene.addChild(editor_layer);
@@ -257,14 +308,14 @@
 
     function execute()
     {
-      console_layer.show();
-
       var output = document.getElementById("output");
       output.value = "";
 
+      console_layer.show();
+
       exec(editor.getValue());
     }
-
+    
     function fullScreenEdit()
     {
       console_layer.hide();
@@ -320,6 +371,7 @@
         ajaxGet( "courses/"+courses[i], function(text)
           {
             editor.setValue(text);
+            editor.session.selection.clearSelection();
 
             var output = document.getElementById("output");
             if(output)
@@ -333,11 +385,11 @@
 
             index = i;
             
-            var previous_button = document.getElementById("previous");
-            previous_button.disabled = index - 1 < 0;
+            var previous_button = menu_layer.getMenuItem(previous_button_index);
+            previous_button.setDisabled(index - 1 < 0);
 
-            var next_button = document.getElementById("next");
-            next_button.disabled = index + 1 >= courses.length;
+            var next_button = menu_layer.getMenuItem(next_button_index);
+            next_button.setDisabled(index + 1 >= courses.length);
           }); 
       }
     }

@@ -1,127 +1,166 @@
-<!doctype html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=320 user-scalable=no"/>
-    <title>xs playground</title>
-    <style>
-      body {
-        font-family: arial;
-        margin: 0;
-        padding: none;
-        overflow: hidden;
-      }
 
-      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
-      div.emscripten { text-align: center; }      
-      div.emscripten_border { border: 1px solid black; }
-      /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
-      canvas.emscripten { border: 0px none; background-color: black; }
-
-      #emscripten_logo {
-        display: inline-block;
-        margin: 0;
-      }
-
-      .spinner {
-        height: 10px;
-        width: 10px;
-        margin: 0;
-        margin-top: 10px;
-        margin-left: 20px;
-        display: inline-block;
-        vertical-align: top;
-
-        -webkit-animation: rotation .8s linear infinite;
-        -moz-animation: rotation .8s linear infinite;
-        -o-animation: rotation .8s linear infinite;
-        animation: rotation 0.8s linear infinite;
-
-        border-left: 5px solid rgb(235, 235, 235);
-        border-right: 5px solid rgb(235, 235, 235);
-        border-bottom: 5px solid rgb(235, 235, 235);
-        border-top: 5px solid rgb(120, 120, 120);
-        
-        border-radius: 100%;
-        background-color: rgb(189, 215, 46);
-      }
-
-      @-webkit-keyframes rotation {
-        from {-webkit-transform: rotate(0deg);}
-        to {-webkit-transform: rotate(360deg);}
-      }
-      @-moz-keyframes rotation {
-        from {-moz-transform: rotate(0deg);}
-        to {-moz-transform: rotate(360deg);}
-      }
-      @-o-keyframes rotation {
-        from {-o-transform: rotate(0deg);}
-        to {-o-transform: rotate(360deg);}
-      }
-      @keyframes rotation {
-        from {transform: rotate(0deg);}
-        to {transform: rotate(360deg);}
-      }
-
-      #status {
-        display: inline-block;
-        vertical-align: top;
-        margin-top: 10px;
-        margin-left: 20px;
-        font-weight: bold;
-        color: rgb(120, 120, 120);
-      }
-
-      #progress {
-        height: 20px;
-        width: 300px;
-      }
-
-      #controls {
-        display: inline-block;
-        float: right;
-        vertical-align: top;
-        margin-top: 30px;
-        margin-right: 20px;
-      }
-
-      #output {
-        width: 100%;
-        height: 50%;
-        margin: 0 auto;
-        margin-top: 0px;
-        border-left: 0px;
-        border-right: 0px;
-        padding-left: 0px;
-        padding-right: 0px;
-        display: block;
-        background-color: black;
-        color: white;
-        font-family: 'Lucida Console', Monaco, monospace;
-        outline: none;
-        position: absolute;
-        top:99%;
-      }
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=320 user-scalable=no"/>
+  <title>xs playground</title>
+  <script src="cocos2d-adapter.js"></script>
+  <script src="./ace/ace.js" type="text/javascript" charset="utf-8"></script>
+  <style>
 
       #editor {
           margin: 0;
           position: absolute;
-          top: 28px;
-          bottom: 1%;
-          left: 0;
-          right: 0;
+          top: 0%;
+          bottom: 0%;
+          left: 0%;
+          right: 0%;
       }
 
-    </style>
-  </head>
-  <body>
+      #output {
+
+          width: 100%;
+          height: 100%;
+
+          left: 0%;
+          right: 0%;
+          
+          background-color: black;
+          color: white;
+      }
+
+  </style>
+</head>
+<body>
+<script>
+
+    var editor = null;
+
+    function CreateScene() {
+        
+        var w = window.innerWidth;
+        var h = window.innerHeight;
+        
+        var scene = CCScene.create();
+        scene.setContentSize(CCSizeMake(w, h));
+        scene.setPosition( w/2, h/2);
+        scene.setColor("0066cc");
+        scene.setTouchEnabled(true);
+        //scene.setVisible(false);
+        
+        scene.element.setAttribute('class','scene');
+        
+        scene.layout = function ( w, h)
+        {
+            scene.setContentSize(CCSizeMake(w, h));
+            scene.setPosition(w/2,h/2);
+            for (var i = 0; i < scene.childs.length; i++) {
+                if( typeof(scene.childs[i].layout) === "function" ) {
+                    scene.childs[i].layout( w, h);
+                }
+            };
+        }
+
+        function resize() {
+            scene.layout( window.innerWidth, window.innerHeight);
+        }
+        
+        window.addEventListener('resize', resize);
+
+        return scene;
+    }
+
+    var scene = CreateScene();
+    cclog("scene.ax:"+scene.ax+" scene.ay:"+scene.ay);
+
+    var menu_layer = CCLayer.create();
+    scene.addChild(menu_layer);
+    menu_layer.setColor("#ccddee");
+    menu_layer.setAnchorpoint(0,0);
+    menu_layer.layout = function( w, h)
+    {
+        menu_layer.setContentSize(CCSizeMake( w, 30));
+        menu_layer.setPosition( 0, 0);
+    }
+    menu_layer.layout( scene.width, scene.height);
+
+    menu_layer.element.innerHTML 
+    = "<button onclick='execute();' style='margin-top:1px;''>运行</button>"
+
+    menu_layer.element.innerHTML += 
+    "<button onclick='fullScreenEdit();' style=menu_layer.element.innerHTML margin-top:1px;'>全屏</button>"
     
-    <button onclick="execute();" style="margin-top:1px;">运行</button>
-    <button onclick="fullScreenEdit();" style="margin-top:1px;">全屏</button>
-    <button onclick="previous();" id="previous" style="margin-top:1px;">上一页</button>
-    <button onclick="next();" id="next" style="margin-top:1px;">下一页</button>
-    
+    menu_layer.element.innerHTML +=
+    "<button onclick='previous();' id='previous' style='margin-top:1px;'>上一页</button>"
+
+    menu_layer.element.innerHTML +=
+    "<button onclick='next();' id='next' style='margin-top:1px;'>下一页</button>";
+
+    var editor_layer = CCLayer.create();
+    scene.addChild(editor_layer);
+    editor_layer.setColor("#666666");
+    editor_layer.setAnchorpoint(0,0);
+
+    editor_layer.layout_low = function( w, h)
+    {
+        editor_layer.setContentSize( CCSizeMake( w, (h-30)/2) );
+        editor_layer.setPosition( 0, 30);
+    }
+
+    editor_layer.layout_high = function( w, h)
+    {
+        editor_layer.setContentSize( CCSizeMake( w, h-30) );
+        editor_layer.setPosition( 0, 30);
+    }
+
+    editor_layer.setLayout = function( editor_layout )
+    {
+      editor_layer.layout = editor_layout;
+      
+      editor_layer.layout( scene.width, scene.height);
+
+      if( editor )
+        editor.resize();
+    }
+
+    editor_layer.setLayout(editor_layer.layout_high);
+
+    editor_layer.element.innerHTML = "<pre id='editor'></pre>";
+
+    var console_layer = CCLayer.create();
+    scene.addChild(console_layer);
+    console_layer.setColor("#000000");
+    console_layer.setAnchorpoint(0,0);
+    console_layer.showing = false;
+    console_layer.layout = function( w, h)
+    {
+        console_layer.setContentSize( CCSizeMake( w, (h-30)/2 ) );
+        console_layer.setPosition( 0, console_layer.showing ? (h-30)/2+30 : h);
+    }
+    console_layer.layout( scene.width, scene.height);
+    console_layer.element.innerHTML = "<textarea id='output' rows=8 readonly></textarea>";
+    console_layer.setDepth(10);
+
+    console_layer.show = function()
+    {
+      console_layer.showing = true;
+      console_layer.runAction(Sequence([MoveTo( 0.2, 0, (scene.height-30)/2 + 30 ), CallFunc(function(){
+              editor_layer.setLayout(editor_layer.layout_low);
+              console_layer.setPosition( 0, (scene.height-30)/2 + 30);
+      })]));
+    }
+
+    console_layer.hide = function()
+    {
+      console_layer.showing = false;
+      editor_layer.setLayout(editor_layer.layout_high);
+      console_layer.runAction(MoveTo( 0.2, 0, scene.height));
+    }
+
+    StartAnimation(1/60.0);
+
+    </script>
+
     <div class="" display="none">
       <progress value="0" max="100" id="progress" hidden=1></progress>
     </div>
@@ -130,8 +169,6 @@
       <div class="spinner" id='spinner'></div>
       <div class="emscripten" id="status" >Downloading...</div>
     </canvas>
-
-    <textarea id="output" rows="8" readonly></textarea>
 
     <script type='text/javascript'>
       var statusElement = document.getElementById('status');
@@ -205,16 +242,6 @@
           if (text) console.error('[post-exception status] ' + text);
         };
       };
-    </script>
-    <script async type="text/javascript" src="ScriptEngine.js"></script>
-
-<pre id="editor">
-
-</pre>
-
-<script src="./cocos2d-adapter.js" type="text/javascript" charset="utf-8"></script>
-<script src="./ace/ace.js" type="text/javascript" charset="utf-8"></script>
-<script>
 
     function exec(code)
     {
@@ -224,44 +251,23 @@
           callMain([code]);
     }
 
-    var lanMapping = {"tmpl":"html","html":"html","js":"javascript","htm":"html","php":"php","lua":"lua","py":"python", "":"golang"};
-
-    function autoMode(editor) {
-        var href = window.location.href;
-        var parts = href.split(".");
-        var ext = parts[parts.length-1];
-        if( typeof(lanMapping[ext]) !== 'undefined' ) {
-            editor.getSession().setMode( "ace/mode/" + golang ); 
-        } else {
-            editor.getSession().setMode( "ace/mode/text" );
-        }
-    }
-    
-    var editor = ace.edit("editor");
+    editor = ace.edit("editor");
     editor.setTheme("ace/theme/twilight");
     editor.getSession().setMode( "ace/mode/golang");
 
     function execute()
     {
-      editor.getValue();
+      console_layer.show();
+
       var output = document.getElementById("output");
       output.value = "";
-
-      var editor_dom = document.getElementById("editor");
-      editor_dom.style["bottom"] = "50%";
-      var output = document.getElementById("output");
-      output.style["top"] = "50%";
 
       exec(editor.getValue());
     }
 
     function fullScreenEdit()
     {
-      var editor_dom = document.getElementById("editor");
-      editor_dom.style["bottom"] = "1%";
-
-      var output = document.getElementById("output");
-      output.style["top"] = "99%";
+      console_layer.hide();
     }
 
     editor.commands.addCommand({
@@ -293,7 +299,7 @@
 
     var index = parseInt( localStorage.index || 0 );
 
-    var courses = ["1_HelloWorld.xs","2_Variables.xs","3_String.xs","4_While.xs","5_For.xs","6_If.xs","7_Function.xs","8_Recursion.xs","9_Closure.xs","10_Application.xs"];
+    var courses = ["1_HelloWorld.xs","2_Variables.xs","3_String.xs","4_While.xs","5_For.xs","6_If.xs","7_Function.xs","8_Recursion.xs","9_Closure.xs","10_Application.xs", "11_Try.xs"];
 
     function previous()
     {
@@ -316,7 +322,8 @@
             editor.setValue(text);
 
             var output = document.getElementById("output");
-            output.value = "";
+            if(output)
+              output.value = "";
 
             fullScreenEdit();
 
@@ -334,12 +341,10 @@
           }); 
       }
     }
-
+    
     load(index);
-
-</script>
-
-    </body>
+    
+    </script>
+    <script async type="text/javascript" src="ScriptEngine.js"></script>
+</body>
 </html>
-
-

@@ -3045,9 +3045,11 @@ function create_table_view(size, cellHeight, gap, dataSourceOrNumRows, cellForRo
     return tableView;
 }
 
+/*
 document.body.onselectstart = document.body.ondrag = function () {
     return false;
 }
+*/
 
 function setFullScreen(node) {
     node.element.style.width = "100%";

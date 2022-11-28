@@ -3,7 +3,13 @@
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=320 user-scalable=no"/>
-  <title>xs playground</title>
+  <meta name="x5-orientation" content="portrait"/>
+  <meta name="x5-fullscreen" content="true" />
+  <meta name="x5-page-mode" content="app" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'">
+  <title>script engine web demo</title>
   <script src="cocos2d-adapter.js"></script>
   <script src="./ace/ace.js" type="text/javascript" charset="utf-8"></script>
   <style>
@@ -47,25 +53,31 @@
         scene.setColor("0066cc");
         scene.setTouchEnabled(true);
         //scene.setVisible(false);
-        
+
         scene.element.setAttribute('class','scene');
-        
+
         scene.layout = function ( w, h)
         {
-            scene.setContentSize(CCSizeMake(w, h));
-            scene.setPosition(w/2,h/2);
-            for (var i = 0; i < scene.childs.length; i++) {
-                if( typeof(scene.childs[i].layout) === "function" ) {
-                    scene.childs[i].layout( w, h);
-                }
-            };
+          scene.setContentSize(CCSizeMake(w, h));
+          scene.setPosition( w/2, h/2);
+          for (var i = 0; i < scene.childs.length; i++) {
+              if( typeof(scene.childs[i].layout) === "function" ) {
+                  scene.childs[i].layout( w, h);
+              }
+          };
         }
 
         function resize() {
             scene.layout( window.innerWidth, window.innerHeight);
         }
-        
+
         window.addEventListener('resize', resize);
+
+        function on_orintation_change(orintation) 
+        {
+          scene.layout( window.innerWidth, window.innerHeight);
+        }
+        SetOrintationLisener(on_orintation_change);
 
         return scene;
     }
@@ -88,7 +100,7 @@
 
     //menu_layer.num_menu_items = 0;
     menu_layer.menu_items = [];
-    menu_layer.menu_item_width = 60;
+    menu_layer.menu_item_width = 50;
 
     menu_layer.addMenuItem = function( title, callback)
     {
@@ -125,12 +137,20 @@
       return item_id;
     }
 
+    menu_layer.addMenuItem( "新建", function(){
+      new_file();
+    });
+
     menu_layer.addMenuItem( "运行", function(){
       execute();
     });
 
     menu_layer.addMenuItem( "全屏", function(){
       fullScreenEdit();
+    });
+
+    menu_layer.addMenuItem( "保存", function(){
+      save();
     });
 
     var previous_button_index = menu_layer.addMenuItem( "上一页", function(){
@@ -156,22 +176,25 @@
     {
         editor_layer.setContentSize( CCSizeMake( w, (h-30)/2) );
         editor_layer.setPosition( 0, 30);
+
+        if( editor )
+          editor.resize();
     }
 
     editor_layer.layout_high = function( w, h)
     {
         editor_layer.setContentSize( CCSizeMake( w, h-30) );
         editor_layer.setPosition( 0, 30);
+
+        if( editor )
+          editor.resize();
     }
 
     editor_layer.setLayout = function( editor_layout )
     {
       editor_layer.layout = editor_layout;
-      
-      editor_layer.layout( scene.width, scene.height);
 
-      if( editor )
-        editor.resize();
+      editor_layer.layout( scene.width, scene.height);
     }
 
     editor_layer.setLayout(editor_layer.layout_high);
@@ -325,7 +348,7 @@
         name: 'save',
         bindKey: {win: 'Ctrl-S',  mac: 'Command-S'},
         exec: function(editor) {
-            execute();
+          save();
         },
         readOnly: true
     });
@@ -349,9 +372,27 @@
       });
 
     var index = parseInt( localStorage.index || 0 );
-    
-    var courses = ["1_HelloWorld.xs","2_Variables.xs","3_String.xs","4_While.xs","5_For.xs","6_If.xs","7_Function.xs","8_Recursion.xs","9_Closure.xs","10_Object.xs","11_Application.xs", "12_Try.xs"];
-    
+
+    var open_files = ["1_HelloWorld.xs","2_Variables.xs","3_String.xs","4_While.xs","5_For.xs","6_If.xs","7_Function.xs","8_Recursion.xs","9_Closure.xs","10_Object.xs","11_Application.xs", "12_Try.xs"];
+
+    var is_course_dict = {};
+
+    for (var i = open_files.length - 1; i >= 0; i--) {
+      is_course_dict[open_files[i]] = true;
+    }
+
+    var loaded_file_list = localStorage.getItem("open_files");
+    if( loaded_file_list )
+      open_files = JSON.parse(loaded_file_list);
+
+    function is_course(file_name)
+    {
+      if( localStorage.getItem(file_name) !== null )
+        return false;
+
+      return is_course_dict[file_name] === true;
+    }
+
     function previous()
     {
       load(index - 1);
@@ -362,40 +403,83 @@
       load(index + 1);
     }
 
+    function save()
+    {
+      localStorage.setItem( open_files[index], editor.getValue());
+    }
+
+    function create_new_file(file_name)
+    {
+      open_files.push(file_name);
+
+      i = open_files.length - 1;
+
+      switch_file( "", i, file_name);
+
+      localStorage.setItem("open_files", JSON.stringify(open_files));
+    }
+    
+    function new_file()
+    {
+      var file_name = prompt("请输入文件名");
+
+      if(file_name != null && file_name.length > 0)
+      {
+        if(!file_name.endsWith(".xs"))
+          file_name += ".xs";
+
+        create_new_file(file_name);
+      }
+    }
+
+    function switch_file( source, i, title)
+    {
+      editor.setValue(source);
+      editor.session.selection.clearSelection();
+
+      var output = document.getElementById("output");
+      if(output)
+        output.value = "";
+
+      fullScreenEdit();
+
+      document.title =  title;
+
+      localStorage.index = i;
+
+      index = i;
+
+      var previous_button = menu_layer.getMenuItem(previous_button_index);
+      previous_button.setDisabled(index - 1 < 0);
+
+      var next_button = menu_layer.getMenuItem(next_button_index);
+      next_button.setDisabled(index + 1 >= open_files.length);
+    }
+
     function load(i)
     {
-      if( i >= 0 && i < courses.length )
+      if( i >= 0 && i < open_files.length )
       {
         document.title = "Loading...";
 
-        ajaxGet( "courses/"+courses[i], function(text)
+        if( is_course(open_files[i]) )
+        {
+          ajaxGet( "courses/"+open_files[i], function(source)
           {
-            editor.setValue(text);
-            editor.session.selection.clearSelection();
-
-            var output = document.getElementById("output");
-            if(output)
-              output.value = "";
-
-            fullScreenEdit();
-
-            document.title = (courses[i].split("_"))[1];
-
-            localStorage.index = i;
-
-            index = i;
-            
-            var previous_button = menu_layer.getMenuItem(previous_button_index);
-            previous_button.setDisabled(index - 1 < 0);
-
-            var next_button = menu_layer.getMenuItem(next_button_index);
-            next_button.setDisabled(index + 1 >= courses.length);
-          }); 
+            var title = (open_files[i].split("_"))[1];
+            switch_file( source, i, title);
+          });
+        }
+        else
+        {
+          var source = localStorage.getItem(open_files[i]);
+          switch_file( source || "", i, open_files[i]);
+        }
       }
     }
-    
+
     load(index);
-    
+
     </script>
     <script async type="text/javascript" src="ScriptEngine.js"></script>
 </body>

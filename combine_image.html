@@ -1,0 +1,156 @@
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>拼图</title>
+</head>
+
+<body>
+
+<div width="100%" style="white-space:nowrap;">
+
+<input type="file" id="file" style="height:60px;width:33%;" onchange="on_selected_file();"></input>
+<button onclick="select();" style='height:60px;width:33%;font-size:30px;'>选择</button>
+<button onclick="download_image();" id="download" style='height:60px;width:33%;display:none;font-size:30px;'>下载</button>
+
+</div>
+
+<div id="capture" style="padding: 0px;" width="100%" >
+    <table border="0" cellspacing="0" >
+        <tr id="row" width="100%">
+        </tr>
+    </table>
+</div>
+
+<img id="preview" width="100%">
+</img>
+<script src="html2canvas.js"></script>
+
+<script>
+
+function reset_display_mode()
+{
+    var preview = document.getElementById("preview");
+    preview.style.display = "none";
+
+    var download_button = document.getElementById("download");
+    download_button.style.display = "none";
+
+    var capture_div = document.getElementById("capture");
+    capture_div.style.display = "block";
+}
+
+function on_selected_file()
+{
+    reset_display_mode();
+
+    var file_input = document.getElementById("file");
+    file_to_data_url(file_input.files[0], on_get_data_url);
+}
+
+function file_to_data_url( file, callback)
+{
+    var reader = new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = function(event)
+    {
+        var text = event.target.result;
+        if( typeof(callback) === "function") {
+            callback(text);
+        }
+    }
+}
+
+function load_file( ext_name, callback)
+{
+    var input_element = document.createElement("input");
+    input_element.type = "file";
+
+    if(ext_name)
+        input_element.accept = "." + ext_name;
+
+    input_element.addEventListener( "change", function()
+    {
+        var file = input_element.files[0];
+
+        file_to_data_url(file, callback);
+
+    }, false);
+
+    input_element.click();
+}
+
+var num_cells = 0;
+
+function on_get_data_url(url)
+{     
+    var row = document.getElementById("row");
+
+    var width = "" + (1/(num_cells+1))*100 + "%";
+
+    for( i = 0; i < num_cells; i += 1)
+    {
+        var img = document.getElementById("td"+i);
+        img.style.width = width;
+    }
+
+    row.innerHTML += "<td id='td"+(num_cells++)+"' style='padding:0px;border:none;width:"+width+"'><img src="+url+" width='100%'></img></td>";
+
+    capture(false);
+}
+
+function select()
+{
+    reset_display_mode();
+
+    load_file( null, on_get_data_url);
+}
+
+function download( url, filename)
+{
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+
+    a.download = filename;
+    a.href = url;
+
+    a.target = "_blank";
+    a.click();
+
+    document.body.removeChild(a);
+}
+
+function download_image()
+{
+    var preview = document.getElementById("preview");
+
+    if( preview.src !== "" )
+        download( preview.src, "combined_image");
+}
+
+function capture(bDownload)
+{
+    html2canvas(document.getElementById("capture")).then(
+        function(canvas)
+        {
+            var img_url = canvas.toDataURL();
+
+            var capture_div = document.getElementById("capture");
+            capture_div.style.display = "none";
+
+            var preview = document.getElementById("preview");
+            preview.src = img_url;
+            preview.style.display = "block";
+
+            var download_button = document.getElementById("download");
+            download_button.style.display = "inline-block";
+        }
+    );
+}
+
+</script>
+
+<body>
+</html>

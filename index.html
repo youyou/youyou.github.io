@@ -83,7 +83,6 @@
     }
 
     var scene = CreateScene();
-    cclog("scene.ax:"+scene.ax+" scene.ay:"+scene.ay);
 
     var menu_bar_height = 30;
 
@@ -145,9 +144,9 @@
       execute();
     });
 
-    menu_layer.addMenuItem( "全屏", function(){
-      fullScreenEdit();
-    });
+    // menu_layer.addMenuItem( "全屏", function(){
+    //   fullScreenEdit();
+    // });
 
     menu_layer.addMenuItem( "保存", function(){
       save();
@@ -231,10 +230,27 @@
       console_layer.runAction(MoveTo( 0.2, 0, scene.height));
     }
 
+    var close_button = CCSprite.create("close.png");
+    console_layer.addChild(close_button);
+    close_button.setContentSize(CCSizeMake(32,32));
+    close_button.setScale(0.25);
+
+    close_button.layout = function( w, h)
+    {
+      close_button.setPosition( w-12.5, 12.5);
+    }
+    close_button.layout(console_layer.width, console_layer.height);
+
+    close_button.setTouchEnabled(true);
+
+    close_button.touchEnded = function( x, y) {
+      fullScreenEdit();
+    };
+
     StartAnimation(1/60.0);
 
     </script>
-
+    
     <div class="" display="none">
       <progress value="0" max="100" id="progress" hidden=1></progress>
     </div>
@@ -418,7 +434,7 @@
 
       localStorage.setItem("open_files", JSON.stringify(open_files));
     }
-    
+
     function new_file()
     {
       var file_name = prompt("请输入文件名");
@@ -479,7 +495,7 @@
     }
 
     load(index);
-
+    
     </script>
     <script async type="text/javascript" src="ScriptEngine.js"></script>
 </body>

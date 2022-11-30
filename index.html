@@ -1,5 +1,13 @@
 
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z1TLVT2BL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-6Z1TLVT2BL');
+  </script>
   <meta charset="utf-8">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=320 user-scalable=no"/>
@@ -118,10 +126,26 @@
 
       label.disabled = false;
 
+      label.touchBegin = function()
+      {
+        this.setOpacity(0.5);
+      };
+
       label.touchEnded = function( x, y)
       {
         if(!this.disabled)
+        {
+          this.setOpacity(1);
           callback();
+        }
+      };
+
+      label.touchCanceled = function( x, y)
+      {
+        if(!this.disabled)
+        {
+          this.setOpacity(1);      
+        }
       };
 
       label.setDisabled = function(disabled)
@@ -243,14 +267,25 @@
 
     close_button.setTouchEnabled(true);
 
+    close_button.touchBegin = function( x, y)
+    {
+      this.setOpacity(0.5);
+    };
+
     close_button.touchEnded = function( x, y) {
+      this.setOpacity(1);
       fullScreenEdit();
+    };
+
+    close_button.touchCanceled = function( x, y)
+    {
+      this.setOpacity(1);
     };
 
     StartAnimation(1/60.0);
 
     </script>
-    
+
     <div class="" display="none">
       <progress value="0" max="100" id="progress" hidden=1></progress>
     </div>
@@ -495,7 +530,7 @@
     }
 
     load(index);
-    
+
     </script>
     <script async type="text/javascript" src="ScriptEngine.js"></script>
 </body>

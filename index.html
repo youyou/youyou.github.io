@@ -39,13 +39,14 @@
           left: 0%;
           right: 0%;
           
-          background-color: black;
           color: white;
+
+          background-color: black;
       }
 
   </style>
 </head>
-<body>
+<body ondragstar="return false;" ondrop="return false;" style="position:fixed; width:100%; height:100%; padding: 0px; margin: 0px; -moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;">
 <script>
 
     var editor = null;
@@ -54,7 +55,7 @@
         
         var w = window.innerWidth;
         var h = window.innerHeight;
-        
+
         var scene = CCScene.create();
         scene.setContentSize(CCSizeMake(w, h));
         scene.setPosition( w/2, h/2);
@@ -235,7 +236,30 @@
         console_layer.setPosition( 0, console_layer.showing ? (h-30)/2+30 : h);
     }
     console_layer.layout( scene.width, scene.height);
-    console_layer.element.innerHTML = "<textarea id='output' rows=8 readonly></textarea>";
+
+    console_layer.element.innerHTML = "<textarea id='output'rows=8 style='overflow: scroll; -webkit-overflow-scrolling: touch;' ></textarea>";
+
+    var output = document.getElementById('output');
+    console_layer.output = output;
+
+    console_layer.setTouchEnabled(true);
+
+    console_layer.touchBeginY = -1;
+    console_layer.touchBeginScroll = -1;
+
+    console_layer.touchBegin = function( x, y)
+    {
+      var element = document.getElementById('output');
+      cclog("begin scroll:" + console_layer.output.scrollTop);
+      console_layer.touchBeginY = y;
+      console_layer.touchBeginScroll = console_layer.output.scrollTop;
+    };
+
+    console_layer.touchMoved = function( x, y) {
+      cclog( x + "," + y);
+      console_layer.output.scrollTop = console_layer.touchBeginScroll + (console_layer.touchBeginY - y);
+    };
+
     console_layer.setDepth(10);
 
     console_layer.show = function()
@@ -309,13 +333,14 @@
           return function(text) {
             if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
             // These replacements are necessary if you render to raw HTML
-            //text = text.replace(/&/g, "&amp;");
-            //text = text.replace(/</g, "&lt;");
-            //text = text.replace(/>/g, "&gt;");
-            //text = text.replace('\n', '<br>', 'g');
+            // text = text.replace(/&/g, "&amp;");
+            // text = text.replace(/</g, "&lt;");
+            // text = text.replace(/>/g, "&gt;");
+            // text = text.replace('\n', '<br>', 'g');
             console.log(text);
             if (element) {
               element.value += text + "\n";
+              //element.innerHTML += text + "<br>";
               element.scrollTop = element.scrollHeight; // focus on bottom
             }
           };
@@ -382,7 +407,7 @@
 
     function execute()
     {
-      var output = document.getElementById("output");
+      var output = console_layer.output;
       output.value = "";
 
       console_layer.show();
@@ -488,7 +513,7 @@
       editor.setValue(source);
       editor.session.selection.clearSelection();
 
-      var output = document.getElementById("output");
+      var output = console_layer.output;
       if(output)
         output.value = "";
 

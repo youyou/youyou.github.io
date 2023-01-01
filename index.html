@@ -1,4 +1,3 @@
-
 <head>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-6Z1TLVT2BL"></script>
@@ -61,7 +60,7 @@
 
         scene.setContentSize(CCSizeMake(w, h));
         scene.setPosition( w/2, h/2);
-        scene.setColor("0066cc");
+        scene.setColor("000000");
         scene.setTouchEnabled(true);
         //scene.setVisible(false);
 
@@ -181,39 +180,61 @@
     }
     left_view.layout( scene.width, scene.height);
 
-    var close_mask_layer = CCLayer.create();
-    scene.addChild(close_mask_layer);
+    var close_mask_layer = null;
 
-    close_mask_layer.setAnchorpoint( 0, 0);
-    close_mask_layer.setPosition( 0, menu_bar_height-2);
-    //close_mask_layer.setColor("#ffffff");
-    //close_mask_layer.setBgOpacity(0.1);
-    close_mask_layer.setDepth(20);
-    close_mask_layer.setVisible(false);
-    close_mask_layer.layout = function( w, h)
+    if( Sys.mobileSafari )
     {
-      close_mask_layer.setContentSize(CCSizeMake( w, h-menu_bar_height));
-    };
-    close_mask_layer.layout(scene.width, scene.height);
-    
+      close_mask_layer = CCLayer.create();
+      scene.addChild(close_mask_layer);
+      close_mask_layer.setAnchorpoint( 0, 0);
+      close_mask_layer.setPosition( 0, menu_bar_height-2);
+      //close_mask_layer.setColor("#ffffff");
+      //close_mask_layer.setBgOpacity(0.1);
+      close_mask_layer.setDepth(20);
+      close_mask_layer.setVisible(false);
+      close_mask_layer.layout = function( w, h)
+      {
+        close_mask_layer.setContentSize(CCSizeMake( w, h-menu_bar_height));
+      };
+      close_mask_layer.layout(scene.width, scene.height);
+
+      close_mask_layer.setTouchEnabled(true);
+      close_mask_layer.touchEnded = close_left_view;
+    }
+
     function open_left_view()
     {
-      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, left_view_width, 0)), CallFunc(function(){
+      target_scene_x = left_view_width;
+
+      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, target_scene_x, 0)), CallFunc(function()
+        {
           scene.setPosition(left_view_width, 0);
-          close_mask_layer.setVisible(true);
+
+          if(close_mask_layer)
+            close_mask_layer.setVisible(true);
+
+          console_layer.layout( scene.width, scene.height);
+          editor_layer.layout( scene.width, scene.height);
+
         })]) );
     }
 
     function close_left_view()
     {
-      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, 0, 0) ), CallFunc(function(){
+      target_scene_x = 0;
+
+      console_layer.layout( scene.width, scene.height);
+      editor_layer.layout( scene.width, scene.height);
+
+      scene.runAction( Sequence([ Ease( ease.easeOutSine, MoveTo( 0.3, target_scene_x, 0) ), CallFunc(function(){
+        
         scene.setPosition( 0, 0);
-        close_mask_layer.setVisible(false);
+
+        if(close_mask_layer)
+          close_mask_layer.setVisible(false);
+
       })]) );
     }
-
-    close_mask_layer.setTouchEnabled(true);
-    close_mask_layer.touchEnded = close_left_view;
 
     var file_list_button = CCSprite.create("menu.png");
     menu_layer.addChild(file_list_button);
@@ -276,6 +297,9 @@
       return label;
     }
 
+    var target_scene_x = Sys.mobileSafari ? 0 : left_view_width;
+    scene.setPosition(target_scene_x, 0);
+    
     var editor_layer = CCLayer.create();
     scene.addChild(editor_layer);
     editor_layer.setColor("#666666");
@@ -283,20 +307,28 @@
 
     editor_layer.layout_low = function( w, h)
     {
+      if(Sys.mobileSafari)        
         editor_layer.setContentSize( CCSizeMake( w, (h-30)/2) );
-        editor_layer.setPosition( 0, 30);
+      else
+        editor_layer.setContentSize( CCSizeMake( w - target_scene_x, (h-30)/2) );
 
-        if( editor )
-          editor.resize();
+      editor_layer.setPosition( 0, 30);
+
+      if( editor )
+        editor.resize();
     }
 
     editor_layer.layout_high = function( w, h)
     {
+      if(Sys.mobileSafari)        
         editor_layer.setContentSize( CCSizeMake( w, h-30) );
-        editor_layer.setPosition( 0, 30);
+      else
+        editor_layer.setContentSize( CCSizeMake( w - target_scene_x, h-30) );
 
-        if( editor )
-          editor.resize();
+      editor_layer.setPosition( 0, 30);
+
+      if( editor )
+        editor.resize();
     }
 
     editor_layer.setLayout = function( editor_layout )
@@ -317,7 +349,11 @@
     console_layer.showing = false;
     console_layer.layout = function( w, h)
     {
-        console_layer.setContentSize( CCSizeMake( w, (h-30)/2 ) );
+        if(Sys.mobileSafari)
+          console_layer.setContentSize( CCSizeMake( w, (h-30)/2 ) );
+        else
+          console_layer.setContentSize( CCSizeMake( w - target_scene_x, (h-30)/2 ) );
+
         console_layer.setPosition( 0, console_layer.showing ? (h-30)/2+30 : h);
     }
     console_layer.layout( scene.width, scene.height);
@@ -790,7 +826,7 @@
       tip.layout(scene.width, scene.height);
       tip.runAction(Sequence([ DelayTime(6), FadeOut(0.5), Remove()]));
     }
-    
+
     </script>
     <script async type="text/javascript" src="ScriptEngine.js"></script>
 </body>

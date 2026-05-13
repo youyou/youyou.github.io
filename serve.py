@@ -6,6 +6,6 @@ import SocketServer
 
 Handler = SimpleHTTPServer.SimpleHTTPRequestHandler 
 
-httpd = SocketServer.TCPServer(("", 80), Handler)
+httpd = SocketServer.TCPServer(("0.0.0.0", 80), Handler)
 
 httpd.serve_forever()

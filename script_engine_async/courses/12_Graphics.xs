@@ -55,6 +55,6 @@ beginPath();
 moveTo( 0, window_size.height/2);
 
 for( i=1; i<window_size.width; i+=1)
-{   
+{
     lineTo( i, cos(i*0.1)*window_size.height/4 + window_size.height/2 );
 }

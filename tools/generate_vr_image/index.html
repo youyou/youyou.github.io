@@ -1,0 +1,188 @@
+<html>
+
+<head>
+<meta charset="utf-8">
+<title>3D拼图</title>
+</head>
+
+<body style="margin: 0px; padding: 0px;">
+
+<div width="100%" style="white-space:nowrap;">
+
+<input type="file" id="file" style="height:60px;width:20%;" onchange="on_selected_file();"></input>
+<button onclick="select();" style='height:60px;width:20%;font-size:30px;'>选择</button>
+<button onclick="download_image();" id="download" style='height:60px;width:20%;display:none;font-size:30px;'>下载</button>
+
+</div>
+
+<div width="100%" style="white-space:nowrap;">
+padding-left:
+<input type="number" value="150" style="height:40px;width:10%;" onchange="document.getElementById('capture').style.paddingLeft=this.value+'px';"></input>
+padding-right:
+<input type="number" value="150" style="height:40px;width:10%;" onchange="document.getElementById('capture').style.paddingRight=this.value+'px';"></input>
+
+<button onclick="ok();" id="ok" style="height:40px;width:10%;" style="display: none">OK</button>
+
+</div>
+
+<div id="capture" style="padding-left:150px;padding-right:150px; border: 1px; width:1920px; height:1080px;background-color:#000; display:  flex; align-items: center; transform-origin: top left; overflow: hidden; box-sizing: border-box;" >
+    <table border="0" cellspacing="0" style="width:100%; ">
+        <tr id="row" width="100%">
+        </tr>
+    </table>
+</div>
+
+<img id="preview" width="100%"></img>
+
+<script src="html2canvas.js"></script>
+
+<script>
+
+function update_scale()
+{
+    const baseWidth = 1920.0;
+    const scaleX = (window.innerWidth)/baseWidth;
+    const div = document.getElementById("capture");
+    div.style.transform = `scale(${scaleX})`;
+    div.style.width = "1920px";
+    div.style.height = "1080px";
+}
+
+window.addEventListener("resize", update_scale);
+
+update_scale();
+
+function reset_display_mode()
+{
+    var preview = document.getElementById("preview");
+    preview.style.display = "none";
+
+    var download_button = document.getElementById("download");
+    download_button.style.display = "none";
+
+    var capture_div = document.getElementById("capture");
+    capture_div.style.display = "flex";
+}
+
+function on_selected_file()
+{
+    reset_display_mode();
+
+    var file_input = document.getElementById("file");
+    file_to_data_url(file_input.files[0], on_get_data_url);
+}
+
+function file_to_data_url( file, callback)
+{
+    var reader = new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = function(event)
+    {
+        var text = event.target.result;
+        if( typeof(callback) === "function") {
+            callback(text);
+        }
+    }
+}
+
+function load_file( ext_name, callback)
+{
+    var input_element = document.createElement("input");
+    input_element.type = "file";
+
+    if(ext_name)
+        input_element.accept = "." + ext_name;
+
+    input_element.addEventListener( "change", function()
+    {
+        var file = input_element.files[0];
+
+        file_to_data_url(file, callback);
+
+    }, false);
+
+    input_element.click();
+}
+
+var num_cells = 0;
+
+function on_get_data_url(url)
+{     
+    var row = document.getElementById("row");
+
+    row.innerHTML += "<td id='td"+(num_cells++)+" ' style='padding:0px;border:none;'><img src="+url+" style='width:100%;height:auto;'></img></td>";
+
+    if(num_cells==2)
+        capture(false);
+}
+
+function select()
+{
+    reset_display_mode();
+
+    load_file( null, on_get_data_url);
+}
+
+function download( url, filename)
+{
+    var a = document.createElement("a");
+    document.body.appendChild(a);
+
+    a.download = filename;
+    a.href = url;
+
+    a.target = "_blank";
+    a.click();
+
+    document.body.removeChild(a);
+}
+
+function download_image()
+{
+    var preview = document.getElementById("preview");
+
+    if( preview.src !== "" )
+        download( preview.src, "combined_image");
+}
+
+function capture(bDownload)
+{
+    const div = document.getElementById("capture");
+    const old_transform = div.style.transform;
+    div.style.transform = "scale(1)";
+
+    html2canvas(document.getElementById("capture")).then(
+        function(canvas)
+        {
+            var img_url = canvas.toDataURL();
+
+            var preview = document.getElementById("preview");
+            preview.src = img_url;
+            preview.display = "none";
+
+            var download_button = document.getElementById("download");
+            download_button.style.display = "inline-block";
+
+            var download_button = document.getElementById("ok");
+            download_button.style.display = "inline-block";
+
+            div.style.transform = old_transform;
+        }
+    );
+}
+
+function ok()
+{
+    var capture_div = document.getElementById("capture");
+    capture_div.style.display = "none";
+
+    var preview = document.getElementById("preview");
+    preview.style.display = "block";
+}
+
+</script>
+
+<body>
+</html>

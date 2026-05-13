@@ -23,10 +23,10 @@
     </head>
     <body ondragstart="return false;"  ondrop="return false;" bgcolor=#FFFFFF style="-moz-user-select: -moz-none;  -khtml-user-select: none;  -webkit-user-select: none;" text=#fffffff >
     </body>
-    <script src="cocos2d-adapter.js"></script>
+    <script src="/lib/cocos2d-adapter.js"></script>
     <script>
 
-        function CreateScene() 
+        function CreateScene()
         {
             var w = window.innerWidth;
             var h = window.innerHeight;
@@ -38,6 +38,7 @@
 
             scene.layout = function ( w, h) {    
                 scene.setContentSize(CCSizeMake(w, h));
+                scene.setPosition( w/2, h/2);
                 for (var i = 0; i < scene.childs.length; i++) {
                     if( typeof(scene.childs[i].layout) !== "undefined" ) {
                         scene.childs[i].layout( w, h);
@@ -45,7 +46,7 @@
                 };
             }
             scene.layout( w, h);
-            
+
             function resize() {
                 w = window.innerWidth;
                 h = window.innerHeight;
